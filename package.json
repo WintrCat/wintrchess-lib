@@ -1,5 +1,26 @@
 {
+	"type": "module",
+	"name": "griffin",
+	"author": "wintrcat",
+	"license": "AGPL-3.0-only",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		}
+	},
+	"scripts": {
+		"build": "vite build",
+		"start": "node dist/index.js",
+		"dev": "pnpm run build && pnpm run start"
+	},
 	"dependencies": {
 		"chessops": "^0.15.0"
+	},
+	"devDependencies": {
+		"vite": "^7.3.0",
+		"vite-plugin-dts": "^4.5.4",
+		"vite-tsconfig-paths": "^6.0.3"
 	}
 }
