@@ -1,0 +1,1 @@
+export type GameStage = "opening" | "middlegame" | "endgame";

@@ -1,13 +1,27 @@
 {
 	"type": "module",
-	"name": "griffin",
+	"name": "wintrchess",
+	"version": "1.0.0",
 	"author": "wintrcat",
 	"license": "AGPL-3.0-only",
+	"description": "TypeScript chess tools for game analysis and explanations.",
+	"keywords": [
+		"chess",
+		"analysis",
+		"typescript",
+		"fen",
+		"pgn"
+	],
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js",
 			"require": "./dist/index.cjs"
+		},
+		"./*": {
+			"types": "./dist/*.d.ts",
+			"import": "./dist/*.js",
+			"require": "./dist/*.cjs"
 		}
 	},
 	"scripts": {
@@ -16,11 +30,14 @@
 		"dev": "pnpm run build && pnpm run start"
 	},
 	"dependencies": {
-		"chessops": "^0.15.0"
+		"chessops": "^0.15.0",
+		"openai": "^6.15.0"
 	},
 	"devDependencies": {
+		"@microsoft/api-extractor": "^7.55.2",
+		"unplugin-dts": "1.0.0-beta.6",
 		"vite": "^7.3.0",
-		"vite-plugin-dts": "^4.5.4",
 		"vite-tsconfig-paths": "^6.0.3"
-	}
+	},
+	"files": ["dist"]
 }
