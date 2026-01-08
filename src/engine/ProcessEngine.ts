@@ -1,0 +1,56 @@
+import { spawn } from "child_process";
+
+import { Engine, EngineEvents } from "./Engine";
+import { UCICommand } from "./types/uci";
+
+/** Engine adapter that spawns a child process. */
+export class ProcessEngine extends Engine {
+    protected process;
+
+    constructor(command: string) {
+        super();
+
+        this.process = spawn(command);
+    }
+
+    sendCommand(command: UCICommand) {
+        this.process.stdin.write(command + "\n");
+    }
+
+    on<EventType extends keyof EngineEvents>(
+        event: EventType,
+        fn: EngineEvents[EventType]
+    ) {
+        const listener = event == "message"
+            ? (data: any) => fn(String(data))
+            : (error: Error) => fn(error.message);
+
+        if (event == "message") {
+            this.process.stdout.on("data", listener);
+        } else {
+            this.process.stderr.on("error", listener);
+        }
+
+        this.listeners.set(fn, listener);
+    }
+
+    off<EventType extends keyof EngineEvents>(
+        event: EventType,
+        fn: EngineEvents[EventType]
+    ) {
+        const listener = this.listeners.get(fn);
+        if (!listener) return;
+
+        this.listeners.delete(fn);
+        
+        if (event == "message") {
+            this.process.stdout.off(event, fn);
+        } else {
+            this.process.stderr.off(event, fn);
+        }
+    }
+
+    terminate() {
+        this.process.kill();
+    }
+}

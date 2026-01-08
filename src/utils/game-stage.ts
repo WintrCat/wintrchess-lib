@@ -1,6 +1,6 @@
-import { Board, SquareSet } from "chessops";
+import { Board, COLORS, SquareSet } from "chessops";
 
-import { GameStage } from "./types/GameStage";
+export type GameStage = "opening" | "middlegame" | "endgame";
 
 /** Returns the stage of the game that the board's position is in. */
 export function getGameStage(board: Board): GameStage {
@@ -8,14 +8,12 @@ export function getGameStage(board: Board): GameStage {
     const pieceCount = pieces.size();
 
     if (pieceCount <= 6) return "endgame";
-
-    const whiteBackrank = SquareSet.backrank("white").diff(board.white);
-    const blackBackrank = SquareSet.backrank("black").diff(board.black);
-
-    const backrankSparse = whiteBackrank.size() < 4
-        || blackBackrank.size() < 4;
-
-    if (pieceCount <= 10 || backrankSparse) return "middlegame";
+    if (pieceCount <= 10) return "middlegame";
+    
+    for (const colour of COLORS) {
+        const backrank = SquareSet.backrank(colour).intersect(board[colour]);
+        if (backrank.size() < 4) return "middlegame";
+    }
 
     return "opening";
 }

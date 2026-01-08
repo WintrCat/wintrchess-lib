@@ -1,2 +1,2 @@
-export { isDevelopingMove } from "./piece-development";
-export { getGameStage } from "./game-stage";
+export * from "./piece-development";
+export * from "./game-stage";

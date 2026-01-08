@@ -1,0 +1,193 @@
+import { Chess, NormalMove, parseUci, makeUci } from "chessops";
+import { makeFen } from "chessops/fen";
+
+import { UCICommand, UCIOption, UCIValue } from "./types/uci";
+import { EngineLine } from "./types/EngineLine";
+import { parseScore, getUCIArgument, makeUCIArguments } from "./uci-protocol";
+
+export interface EngineEvents {
+    /** When the engine emits a UCI command. */
+    message: (message: string) => void;
+    /** When the engine throws an error. */
+    error: (message: string) => void;
+};
+
+export abstract class Engine {
+    /** Send a UCI command to the engine. Suggestions are provided. */
+    abstract sendCommand(command: UCICommand): void;
+
+    /** Attach an event listener to the engine. */
+    abstract on<EventType extends keyof EngineEvents>(
+        event: EventType, 
+        fn: EngineEvents[EventType]
+    ): void;
+
+    /** Detach an event listener from the engine. */
+    abstract off<EventType extends keyof EngineEvents>(
+        event: EventType,
+        fn: EngineEvents[EventType]
+    ): void;
+
+    /** Map of event listeners to native ones from the adapter. */
+    protected listeners = new Map<
+        EngineEvents[keyof EngineEvents],
+        (...args: any[]) => void
+    >();
+
+    /** Terminate the engine, e.g. kill the process. */
+    abstract terminate(): void;
+    
+    /**
+     * Send a UCI command and collect response logs until an
+     * end condition is satisfied or a timeout in ms is reached.
+     */
+    async consumeLogs(
+        command: UCICommand,
+        endCondition: (logMessage: string) => boolean,
+        options?: {
+            onLogReceived?: (log: string) => void;
+            timeout?: number;
+        }
+    ): Promise<string[]> {
+        this.sendCommand(command);
+        
+        return new Promise((res, rej) => {
+            const logMessages: string[] = [];
+
+            const timeout = options?.timeout != undefined
+                ? setTimeout(rej, options.timeout) : null;
+
+            const onMessageReceived = (message: string) => {
+                options?.onLogReceived?.(message);
+                logMessages.push(message);
+
+                if (!endCondition(message)) return;
+    
+                if (timeout) clearTimeout(timeout);
+                this.off("message", onMessageReceived);
+                this.off("error", rej);
+
+                res(logMessages);
+            }
+
+            this.on("message", onMessageReceived);
+            this.on("error", rej);
+        });
+    }
+
+    /** Send the `uci` command and wait for `uciok`. */
+    async initialise(timeout?: number) {
+        await this.consumeLogs("uci", msg => msg == "uciok", {
+            timeout: timeout ?? 10000
+        });
+    }
+
+    /** Send the `isready` command and wait for `readyok`. */
+    async waitForReady(timeout?: number) {
+        await this.consumeLogs("isready", msg => msg == "readyok", {
+            timeout: timeout ?? 10000
+        });
+    }
+
+    /** Set an option on the engine. Some suggestions are provided. */
+    setOption(option: UCIOption, value: UCIValue) {
+        this.sendCommand(`setoption name ${option} value ${value}`);
+    }
+
+    /** Set number of lines that the engine should produce. */
+    setLineCount(lines: number) {
+        this.setOption("MultiPV", lines);
+    }
+
+    /**
+     * Limit the engine's strength to a given Elo.
+     * Pass `null` to remove limit.
+     */
+    setStrengthLimit(elo: number | null) {
+        if (elo == null)
+            return this.setOption("UCI_LimitStrength", false);
+
+        this.setOption("UCI_LimitStrength", true);
+        this.setOption("UCI_Elo", elo);
+    }
+
+    /**
+     * Set number of CPU threads to use when evaluating.
+     * Internally sets the `Threads` UCI option.
+     */
+    setThreadCount(threads: number) {
+        this.setOption("Threads", threads);
+    }
+
+    /**
+     * Setup the position on the internal board and apply an optional
+     * set of UCI format or object moves to it.
+     */
+    setPosition(
+        position: string | Chess,
+        moves?: (string | NormalMove)[]
+    ) {
+        const args = makeUCIArguments({
+            fen: typeof position == "string"
+                ? position : makeFen(position.toSetup()),
+            moves: moves?.map(move => (
+                typeof move == "string" ? move : makeUci(move)
+            )).join(" ")
+        });
+
+        this.sendCommand(`position ${args}`);
+    }
+
+    /** Evaluate the position and return recommended lines. */
+    async evaluate(options: {
+        depth?: number;
+        timeLimit?: number;
+        onUpdate?: (lines: EngineLine[]) => void;
+    }) {
+        const lines: EngineLine[] = [];
+
+        const onLogReceived = (log: string) => {
+            if (!/info .*pv/.test(log)) return;
+
+            const depth = Number(getUCIArgument(log, "depth"));
+            const index = Number(getUCIArgument(log, "multipv"));
+            const evaluation = parseScore(getUCIArgument(
+                log, "score", "((?:cp|mate) \\d+)"
+            ));
+
+            const moves = log.match(/(?<= pv ).+/)?.[0].split(" ")
+                .map(uci => parseUci(uci) as NormalMove)
+                .filter(move => move != undefined);
+
+            if (depth == undefined || !evaluation || !moves)
+                return;
+
+            const line: EngineLine = { depth, index, moves, evaluation };
+
+            const duplicateLineIndex = lines.findIndex(line => (
+                depth >= line.depth && line.index == index
+            ));
+
+            if (duplicateLineIndex >= 0) {
+                lines[duplicateLineIndex] = line;
+            } else {
+                lines.push(line);
+            }
+
+            options.onUpdate?.(lines);
+        };
+
+        const args = makeUCIArguments({
+            depth: options.depth,
+            movetime: options.timeLimit
+        });
+
+        await this.consumeLogs(
+            `go ${args}`,
+            log => log.startsWith("bestmove"),
+            { onLogReceived }
+        );
+
+        return lines;
+    }
+}

@@ -1,17 +1,4 @@
-import { CommentaryOptions } from "./types/CommentaryOptions";
+export * from "./CommentaryEngine";
 
-export class CommentaryEngine {
-    private options: CommentaryOptions;
-
-    constructor(opts: CommentaryOptions) {
-        this.options = opts;
-    }
-
-    generateStatements() {
-
-    }
-
-    generateCommentary(statements: string[]) {
-        
-    }
-}
+export type * from "./types/CommentaryOptions";
+export type * from "./types/assessment";

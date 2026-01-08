@@ -6,15 +6,21 @@ export default defineConfig({
     build: {
         lib: {
             entry: {
-                index: "./src/index.ts",
+                engine: "./src/engine/index.ts",
                 commentary: "./src/commentary/index.ts",
+                classify: "./src/classify/index.ts",
                 utils: "./src/utils/index.ts",
-                classify: "./src/classify/index.ts"
+                types: "./src/types/index.ts"
             },
             formats: ["cjs", "es"]
         },
         rollupOptions: {
-            external: ["chessops", "openai"]
+            external: [
+                "chessops",
+                "chessops/fen",
+                "openai",
+                "child_process"
+            ]
         },
         emptyOutDir: true
     },
