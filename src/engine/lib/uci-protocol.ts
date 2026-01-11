@@ -6,8 +6,8 @@ export function getUCIArgument(
     arg: string,
     valueRegex?: string
 ) {
-    const value = valueRegex || "(.+?)";
-    return log.match(`(?:^| )${arg} ${value}(?= |$)`)?.[1];
+    const value = valueRegex || ".+?";
+    return log.match(`(?:^| )${arg} (${value})(?= |$)`)?.[1];
 }
 
 export function makeUCIArguments(
@@ -25,16 +25,16 @@ export function makeUCIArguments(
 
 export function parseScore(
     score: string | undefined
-): Evaluation | null {
+): Evaluation | undefined {
     // scores look like "cp 123" or "mate 4"
-    if (!score) return null;
+    if (!score) return;
     const parts = score.split(" ");
 
     const type = parts.at(0);
-    if (type != "cp" && type != "mate") return null;
+    if (type != "cp" && type != "mate") return;
 
     const value = Number(parts.at(1));
-    if (isNaN(value)) return null;
+    if (isNaN(value)) return;
 
     return { type, value };
 }

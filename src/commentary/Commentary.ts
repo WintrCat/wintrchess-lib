@@ -1,6 +1,6 @@
 import { OpenAI } from "openai";
 
-import { Engine } from "@/engine";
+import { Engine, getTopLine, getWinPercentLoss } from "@/engine";
 import { AnalysedMove, contextualizeMove } from "@/types/ContextualMove";
 import { CommentaryOptions } from "./types/CommentaryOptions";
 import {
@@ -42,7 +42,13 @@ export class Commentary {
                 position: opts.lastPosition
             })).current;
 
+            const lastTopMove = getTopLine(lastContext.engineLines);
+            const topMove = getTopLine(lines);
+
+            
+
             // TO-DO: calculate win% loss between last and current ctx
+            
 
             analysedMove = {
                 ...contextualizeMove(opts.lastPosition, opts.move),

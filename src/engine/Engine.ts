@@ -176,20 +176,20 @@ export abstract class Engine {
         const lines: EngineLine[] = [];
 
         const onLogReceived = (log: string) => {
-            if (!/info .*pv/.test(log)) return;
+            if (!/info .*depth \d+/.test(log)) return;
 
             // Extract line information
             const depth = Number(getUCIArgument(log, "depth"));
             const index = Number(getUCIArgument(log, "multipv")) || 1;
             const evaluation = parseScore(getUCIArgument(
-                log, "score", "((?:cp|mate) \\d+)"
+                log, "score", "(?:cp|mate) \\d+"
             ));
-            const moves = log.match(/(?<= pv ).+/)?.[0].split(" ")
-                .map(uci => parseUci(uci) as NormalMove)
-                .filter(move => move != undefined);
+            const moves = (log.match(/(?<= pv ).+/)?.[0].split(" ")
+                .map(uci => parseUci(uci) as NormalMove | undefined)
+                .filter(move => move != undefined)
+            ) || [];
 
-            if (depth == undefined || !evaluation || !moves)
-                return;
+            if (isNaN(depth) || !evaluation) return;
 
             // Ensure white perspective evaluation
             if (this.position.turn == "black") evaluation.value *= -1;
