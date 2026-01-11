@@ -7,10 +7,17 @@ import { UCICommand } from "./types/uci";
 export class ProcessEngine extends Engine {
     protected process;
 
-    constructor(command: string) {
+    private constructor(command: string) {
         super();
-
         this.process = spawn(command);
+    }
+
+    /** @param command The command sent to spawn the process. */
+    static async create(command: string) {
+        const engine = new ProcessEngine(command);
+        await engine.uciMode();
+
+        return engine;
     }
 
     sendCommand(command: UCICommand) {

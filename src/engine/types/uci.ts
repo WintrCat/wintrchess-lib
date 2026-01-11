@@ -18,15 +18,6 @@ export type UCIOption = (string & {})
     | "OwnBook"
     | "MultiPV"
     | "UCI_LimitStrength"
-    | "UCI_Elo"
-
-export type UCIInfoArgument = (string & {})
-    | "depth"
-    | "time"
-    | "nodes"
-    | "nps"
-    | "pv"
-    | "multipv"
-    | "score";
+    | "UCI_Elo";
 
 export type UCIValue = string | boolean | number;

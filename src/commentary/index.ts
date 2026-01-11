@@ -1,4 +1,6 @@
-export * from "./CommentaryEngine";
+export * from "./Commentary";
 
-export type * from "./types/CommentaryOptions";
-export type * from "./types/assessment";
+export * from "./types/CommentaryOptions";
+export * from "./types/assessment/context";
+export * from "./types/assessment/observation";
+export * from "./types/assessment/options";

@@ -1,58 +1,78 @@
-import { Chess } from "chessops";
+import { OpenAI } from "openai";
 
+import { Engine } from "@/engine";
 import { AnalysedMove, contextualizeMove } from "@/types/ContextualMove";
 import { CommentaryOptions } from "./types/CommentaryOptions";
-import { AssessmentOptions } from "./types/assessment";
-import { ProcessEngine } from "@/engine";
+import {
+    AssessmentContext,
+    AssessmentContextResult
+} from "./types/assessment/context";
+import {
+    AssessmentContextOptions,
+    AssessmentOptions,
+    RecursiveAssessmentOptions
+} from "./types/assessment/options";
 
 export class Commentary {
-    options: CommentaryOptions;
+    engine: Engine;
+    llm: OpenAI;
 
     constructor(opts: CommentaryOptions) {
-        this.options = opts;
-    }
-
-    async observePosition(opts: AssessmentOptions) {
-        const lines = await this.options.engine.evaluate({
-            depth: 18
-        });
-
-        const observations = opts.observations || [];
-
-        for (const observation of observations) {
-            observation({
-                position: opts.position,
-                move: opts.move && contextualizeMove(
-                    opts.lastPosition, opts.move
-                ) as AnalysedMove,
-                engineLines: lines
-            });
-        }
+        this.engine = opts.engine;
+        this.llm = new OpenAI(opts.llm);
     }
 
     /**
-     * Analyse a position and played move, recursing into any follow-up
-     * or alternative variations deemed relevant to explore. Create
-     * natural language statements from observations made on each
-     * explored position. Returns the explored tree of positions.
+     * Produce context to be used by observations. Some information
+     * requires context from the last position; pass a `lastContext`
+     * if you have this on hand, otherwise it can be recalculated.
      */
+    async getAssessmentContext(
+        opts: AssessmentContextOptions,
+        lastContext?: AssessmentContext
+    ): Promise<AssessmentContextResult> {
+        this.engine.setPosition(opts.position);
+        const lines = await this.engine.evaluate(opts.evaluations);
+
+        let analysedMove: AnalysedMove | undefined;
+
+        if (opts.move) {
+            lastContext ??= (await this.getAssessmentContext({
+                evaluations: opts.evaluations,
+                position: opts.lastPosition
+            })).current;
+
+            // TO-DO: calculate win% loss between last and current ctx
+
+            analysedMove = {
+                ...contextualizeMove(opts.lastPosition, opts.move),
+                winPercentLoss: 0
+            };
+        }
+
+        return {
+            current: {
+                position: opts.position,
+                engineLines: lines,
+                move: analysedMove
+            },
+            last: opts.move && lastContext
+        };
+    }
+
+    /** Produce context and execute observations on a position. */
     async createAssessment(opts: AssessmentOptions) {
-        await this.observePosition(opts);
+        const context = await this.getAssessmentContext(opts);
+
+        
+    }
+
+    /**
+     * Create an assessment on a given position, and recurse into
+     * other variations that are deemed relevant. Returns a map of
+     * explored positions to their assessment results.
+     */
+    async createRecursiveAssessment(opts: RecursiveAssessmentOptions) {
+        await this.createAssessment(opts);
     }
 }
-
-const coach = new Commentary({
-    engine: new ProcessEngine("./engines/stockfish.exe"),
-    llm: {
-        apiKey: ""
-    }
-});
-
-coach.createAssessment({
-    position: Chess.default(),
-    observations: [
-        () => {
-            return { statement: "amazing" };
-        }
-    ]
-});

@@ -7,13 +7,17 @@ type WorkerListener = (event: WorkerEventMap[keyof WorkerEventMap]) => any;
 export class BrowserEngine extends Engine {
     protected worker;
 
-    /**
-     * @param url The script URL passed to the `Worker`.
-     */
-    constructor(url: string) {
+    private constructor(url: string) {
         super();
-
         this.worker = new Worker(url);
+    }
+
+    /** @param url The script URL passed to the `Worker`. */
+    static async create(url: string) {
+        const engine = new BrowserEngine(url);
+        await engine.uciMode();
+
+        return engine;
     }
 
     sendCommand(command: UCICommand): void {

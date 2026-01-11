@@ -1,9 +1,9 @@
-import { UCIInfoArgument, UCIValue } from "./types/uci";
-import { Evaluation } from "./types/Evaluation";
+import { UCIValue } from "../types/uci";
+import { Evaluation } from "../types/Evaluation";
 
 export function getUCIArgument(
     log: string,
-    arg: UCIInfoArgument,
+    arg: string,
     valueRegex?: string
 ) {
     const value = valueRegex || "(.+?)";

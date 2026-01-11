@@ -1,9 +1,17 @@
 import { Chess, NormalMove, parseUci, makeUci } from "chessops";
-import { makeFen } from "chessops/fen";
+import { makeFen, parseFen } from "chessops/fen";
 
-import { UCICommand, UCIOption, UCIValue } from "./types/uci";
+import {
+    DEFAULT_ENGINE_DEPTH,
+    EvaluateOptions
+} from "./types/EvaluateOptions";
 import { EngineLine } from "./types/EngineLine";
-import { parseScore, getUCIArgument, makeUCIArguments } from "./uci-protocol";
+import { UCICommand, UCIOption, UCIValue } from "./types/uci";
+import {
+    parseScore,
+    getUCIArgument,
+    makeUCIArguments
+} from "./lib/uci-protocol";
 
 export interface EngineEvents {
     /** When the engine emits a UCI command. */
@@ -13,7 +21,10 @@ export interface EngineEvents {
 };
 
 export abstract class Engine {
-    /** Send a UCI command to the engine. Suggestions are provided. */
+    /**
+     * Send a UCI command to the engine. Don't use this to set the
+     * position, as it must stay in sync with the internal class state.
+     */
     abstract sendCommand(command: UCICommand): void;
 
     /** Attach an event listener to the engine. */
@@ -28,14 +39,16 @@ export abstract class Engine {
         fn: EngineEvents[EventType]
     ): void;
 
+    /** Terminate the engine, e.g. kill the process. */
+    abstract terminate(): void;
+
+    private position = Chess.default();
+
     /** Map of event listeners to native ones from the adapter. */
     protected listeners = new Map<
         EngineEvents[keyof EngineEvents],
         (...args: any[]) => void
     >();
-
-    /** Terminate the engine, e.g. kill the process. */
-    abstract terminate(): void;
     
     /**
      * Send a UCI command and collect response logs until an
@@ -75,8 +88,11 @@ export abstract class Engine {
         });
     }
 
-    /** Send the `uci` command and wait for `uciok`. */
-    async initialise(timeout?: number) {
+    /**
+     * Send the `uci` command and wait for `uciok`. This is called
+     * automatically upon creation of the engine.
+     */
+    async uciMode(timeout?: number) {
         await this.consumeLogs("uci", msg => msg == "uciok", {
             timeout: timeout ?? 10000
         });
@@ -125,36 +141,49 @@ export abstract class Engine {
      */
     setPosition(
         position: string | Chess,
-        moves?: (string | NormalMove)[]
+        moves: (string | NormalMove)[] = []
     ) {
+        if (typeof position == "string") {
+            position = Chess.fromSetup(
+                parseFen(position).unwrap()
+            ).unwrap();
+        }
+
+        const uciMoves = new Array<string>(moves.length);
+        moves.forEach((move, index) => {
+            const parsedMove = typeof move == "string"
+                ? parseUci(move) : move;
+
+            if (!parsedMove)
+                throw new Error(`invalid move "${move}".`);
+
+            position.play(parsedMove);
+            uciMoves[index] = makeUci(parsedMove);
+        });
+
+        this.position = position;
+        
         const args = makeUCIArguments({
-            fen: typeof position == "string"
-                ? position : makeFen(position.toSetup()),
-            moves: moves?.map(move => (
-                typeof move == "string" ? move : makeUci(move)
-            )).join(" ")
+            fen: makeFen(position.toSetup()),
+            moves: uciMoves.join(" ")
         });
 
         this.sendCommand(`position ${args}`);
     }
 
     /** Evaluate the position and return recommended lines. */
-    async evaluate(options: {
-        depth?: number;
-        timeLimit?: number;
-        onUpdate?: (lines: EngineLine[]) => void;
-    }) {
+    async evaluate(options?: EvaluateOptions) {
         const lines: EngineLine[] = [];
 
         const onLogReceived = (log: string) => {
             if (!/info .*pv/.test(log)) return;
 
+            // Extract line information
             const depth = Number(getUCIArgument(log, "depth"));
-            const index = Number(getUCIArgument(log, "multipv"));
+            const index = Number(getUCIArgument(log, "multipv")) || 1;
             const evaluation = parseScore(getUCIArgument(
                 log, "score", "((?:cp|mate) \\d+)"
             ));
-
             const moves = log.match(/(?<= pv ).+/)?.[0].split(" ")
                 .map(uci => parseUci(uci) as NormalMove)
                 .filter(move => move != undefined);
@@ -162,6 +191,10 @@ export abstract class Engine {
             if (depth == undefined || !evaluation || !moves)
                 return;
 
+            // Ensure white perspective evaluation
+            if (this.position.turn == "black") evaluation.value *= -1;
+
+            // Create line object and push to results
             const line: EngineLine = { depth, index, moves, evaluation };
 
             const duplicateLineIndex = lines.findIndex(line => (
@@ -174,12 +207,12 @@ export abstract class Engine {
                 lines.push(line);
             }
 
-            options.onUpdate?.(lines);
+            options?.onUpdate?.(lines);
         };
 
         const args = makeUCIArguments({
-            depth: options.depth,
-            movetime: options.timeLimit
+            depth: options?.depth || DEFAULT_ENGINE_DEPTH,
+            movetime: options?.timeLimit
         });
 
         await this.consumeLogs(
