@@ -18,6 +18,7 @@ import {
 } from "./types/assessment/options";
 import { ObservationResult } from "./types/assessment/observation";
 import { Assessment } from "./types/assessment/result";
+import { DEFAULT_OBSERVATIONS } from "./observations";
 
 export class Commentary {
     engine: Engine;
@@ -82,11 +83,14 @@ export class Commentary {
     ): Promise<Assessment> {
         const contexts = await this.getAssessmentContext(opts, lastContext);
 
-        const observations = opts.observations || [];
+        const observations = opts.observations || DEFAULT_OBSERVATIONS;
         const results: ObservationResult[] = [];
 
         for (const observation of observations) {
-            const result = observation(contexts.current);
+            const result = await observation(
+                contexts.current, contexts.last
+            );
+
             if (result) results.push(result);
         }
 
