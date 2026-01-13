@@ -42,10 +42,11 @@ export abstract class Engine {
     /** Terminate the engine, e.g. kill the process. */
     abstract terminate(): void;
 
-    private position = Chess.default();
+    /** Internal board position. */
+    position = Chess.default();
 
     /** Map of event listeners to native ones from the adapter. */
-    protected listeners = new Map<
+    readonly listeners = new Map<
         EngineEvents[keyof EngineEvents],
         (...args: any[]) => void
     >();
