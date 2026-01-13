@@ -12,7 +12,7 @@ export interface AssessmentContext {
     engineLines: EngineLine[];
     /** Openings database results for `position`. */
     database?: {}
-};
+}
 
 export interface AssessmentContextResult {
     /** The context for the given position. */

@@ -1,5 +1,4 @@
 import { Color } from "chessops";
-import { clone } from "es-toolkit";
 
 import { EngineLine } from "../types/EngineLine";
 import { Evaluation } from "../types/Evaluation";
@@ -14,6 +13,11 @@ export function getTopLine(lines: EngineLine[]) {
     }
 
     return top;
+}
+
+/** Returns the top move from a set of engine lines. */
+export function getTopMove(lines: EngineLine[]) {
+    return getTopLine(lines)?.moves.at(0);
 }
 
 /** Returns the evaluation from a set of lines for a given position. */
@@ -47,4 +51,17 @@ export function getWinPercentLoss(
 ) {
     const loss = getWinPercent(before) - getWinPercent(after);
     return Math.max(0, loss);
+}
+
+/**
+ * Returns the centipawn loss between 2 consecutive evaluations.
+ * Returns `undefined` if either are not measured in centipawns.
+ */
+export function getCentipawnLoss(
+    before: Evaluation,
+    after: Evaluation
+) {
+    if (before.type != "cp" || after.type != "cp") return;
+
+    return Math.max(0, before.value - after.value);
 }

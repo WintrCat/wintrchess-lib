@@ -12,6 +12,8 @@ export interface ContextualMove extends NormalMove {
      * differ from `to` for en passant captures.
      */
     captured?: LocatedPiece;
+    /** The position prior to the move. */
+    lastPosition: Chess;
 }
 
 export interface AnalysedMove extends ContextualMove {
@@ -26,17 +28,19 @@ export interface AnalysedMove extends ContextualMove {
     centipawnLoss?: number;
 }
 
-/** Hydrate a move given a position and the move applied to it. */
+/** Contextualize a move given a position and the move applied to it. */
 export function contextualizeMove(
     position: Chess,
     move: NormalMove
 ): ContextualMove {
+    if (!position.isLegal(move)) throw new Error("illegal move.");
+
     const piece = position.board.get(move.from);
-    if (!piece) throw new Error("piece not found to hydrate move.");
+    if (!piece) throw new Error("piece not found.");
 
     const destOccupant = position.board.get(move.to);
     const captured = getEnPassantedPawn(position, move)
         || (destOccupant && { ...destOccupant, square: move.to });
 
-    return { ...move, piece, captured };
+    return { ...move, piece, captured, lastPosition: position };
 }

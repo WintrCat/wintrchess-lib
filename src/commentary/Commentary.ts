@@ -1,17 +1,23 @@
 import { OpenAI } from "openai";
 
-import { Engine, getTopLine, getWinPercentLoss } from "@/engine";
-import { AnalysedMove, contextualizeMove } from "@/types/ContextualMove";
+import {
+    Engine,
+    getCentipawnLoss,
+    getEvaluation,
+    getWinPercentLoss
+} from "@/engine";
+import { AnalysedMove } from "@/types";
 import { CommentaryOptions } from "./types/CommentaryOptions";
 import {
     AssessmentContext,
     AssessmentContextResult
 } from "./types/assessment/context";
 import {
-    AssessmentContextOptions,
     AssessmentOptions,
     RecursiveAssessmentOptions
 } from "./types/assessment/options";
+import { ObservationResult } from "./types/assessment/observation";
+import { Assessment } from "./types/assessment/result";
 
 export class Commentary {
     engine: Engine;
@@ -28,31 +34,31 @@ export class Commentary {
      * if you have this on hand, otherwise it can be recalculated.
      */
     async getAssessmentContext(
-        opts: AssessmentContextOptions,
+        opts: Omit<AssessmentOptions, "observations">,
         lastContext?: AssessmentContext
     ): Promise<AssessmentContextResult> {
+        // Get engine lines
         this.engine.setPosition(opts.position);
         const lines = await this.engine.evaluate(opts.evaluations);
 
+        // Calculate last context for dependent move data
         let analysedMove: AnalysedMove | undefined;
 
         if (opts.move) {
             lastContext ??= (await this.getAssessmentContext({
                 evaluations: opts.evaluations,
-                position: opts.lastPosition
+                position: opts.move.lastPosition
             })).current;
 
-            const lastTopMove = getTopLine(lastContext.engineLines);
-            const topMove = getTopLine(lines);
-
-            
-
-            // TO-DO: calculate win% loss between last and current ctx
-            
+            const lastEvaluation = getEvaluation(lastContext.engineLines);
+            const evaluation = getEvaluation(lines);
+            if (!lastEvaluation || !evaluation)
+                throw new Error("engine produced invalid lines.");
 
             analysedMove = {
-                ...contextualizeMove(opts.lastPosition, opts.move),
-                winPercentLoss: 0
+                ...opts.move,
+                winPercentLoss: getWinPercentLoss(lastEvaluation, evaluation),
+                centipawnLoss: getCentipawnLoss(lastEvaluation, evaluation)
             };
         }
 
@@ -66,11 +72,25 @@ export class Commentary {
         };
     }
 
-    /** Produce context and execute observations on a position. */
-    async createAssessment(opts: AssessmentOptions) {
-        const context = await this.getAssessmentContext(opts);
+    /**
+     * Produce context and execute observations on a position.
+     * Context from the last position can be calculated or reused.
+     */
+    async createAssessment(
+        opts: AssessmentOptions,
+        lastContext?: AssessmentContext
+    ): Promise<Assessment> {
+        const contexts = await this.getAssessmentContext(opts, lastContext);
 
-        
+        const observations = opts.observations || [];
+        const results: ObservationResult[] = [];
+
+        for (const observation of observations) {
+            const result = observation(contexts.current);
+            if (result) results.push(result);
+        }
+
+        return { results, contexts };
     }
 
     /**
@@ -79,6 +99,8 @@ export class Commentary {
      * explored positions to their assessment results.
      */
     async createRecursiveAssessment(opts: RecursiveAssessmentOptions) {
-        await this.createAssessment(opts);
+        const rootAssessment = await this.createAssessment(opts);
+
+        rootAssessment.contexts;
     }
 }
