@@ -1,3 +1,4 @@
+import { makeSan } from "chessops/san";
 import { OpenAI } from "openai";
 
 import {
@@ -17,7 +18,8 @@ import {
     RecursiveAssessmentOptions
 } from "./types/assessment/options";
 import { ObservationResult } from "./types/assessment/observation";
-import { Assessment } from "./types/assessment/result";
+import { AssessmentNode } from "./types/assessment/node";
+import { getAssessmentNodeMoves } from "./lib/assessment-node";
 import { DEFAULT_OBSERVATIONS } from "./observations";
 
 export class Commentary {
@@ -39,7 +41,7 @@ export class Commentary {
         lastContext?: AssessmentContext
     ): Promise<AssessmentContextResult> {
         // Get engine lines
-        await this.engine.setPosition(opts.position);
+        this.engine.setPosition(opts.position);
         const lines = await this.engine.evaluate(opts.evaluations);
 
         // Calculate last context for dependent move data
@@ -54,7 +56,7 @@ export class Commentary {
             const lastEvaluation = getEvaluation(lastContext.engineLines);
             const evaluation = getEvaluation(lines);
             if (!lastEvaluation || !evaluation)
-                throw new Error("engine produced invalid lines.");
+                throw new Error("engine produced invalid or no lines.");
 
             analysedMove = {
                 ...opts.move,
@@ -79,9 +81,11 @@ export class Commentary {
      */
     async createAssessment(
         opts: AssessmentOptions,
-        lastContext?: AssessmentContext
-    ): Promise<Assessment> {
-        const contexts = await this.getAssessmentContext(opts, lastContext);
+        parentNode?: AssessmentNode
+    ): Promise<AssessmentNode> {
+        const contexts = await this.getAssessmentContext(
+            opts, parentNode?.context
+        );
 
         const observations = opts.observations || DEFAULT_OBSERVATIONS;
         const results: ObservationResult[] = [];
@@ -94,7 +98,20 @@ export class Commentary {
             if (result) results.push(result);
         }
 
-        return { results, contexts };
+        const node: AssessmentNode = {
+            parent: parentNode,
+            children: [],
+            context: contexts.current,
+            results: results
+        };
+
+        node.parent ??= contexts.last && {
+            children: [node],
+            context: contexts.last,
+            results: []
+        };
+
+        return node;
     }
 
     /**
@@ -103,8 +120,32 @@ export class Commentary {
      * explored positions to their assessment results.
      */
     async createRecursiveAssessment(opts: RecursiveAssessmentOptions) {
-        const rootAssessment = await this.createAssessment(opts);
+        // const rootAssessment = await this.createAssessment(opts);
 
-        rootAssessment.contexts;
+        throw new Error("not implemented yet.");
+    }
+
+    /** Given an assessment, builds a prompt for an LLM to process. */
+    buildPrompt(rootAssessmentNode: AssessmentNode) {
+        let prompt = "";
+
+        const buildNode = (node: AssessmentNode) => {
+            const moves = getAssessmentNodeMoves(node)
+                .map(move => makeSan(move.lastPosition, move))
+                .join(" ");
+
+            const results = node.results
+                .map(result => result.statement)
+                .join("\n");
+
+            prompt += `${moves}\n${results}\n\n`;
+
+            for (const child of node.children) {
+                buildNode(child);
+            }
+        };
+
+        buildNode(rootAssessmentNode);
+        return prompt.trim();
     }
 }

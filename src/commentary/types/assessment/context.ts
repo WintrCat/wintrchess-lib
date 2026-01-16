@@ -1,7 +1,7 @@
 import { Chess } from "chessops";
 
-import { EngineLine } from "@/engine";
 import { AnalysedMove } from "@/types";
+import { EngineLine } from "@/engine";
 
 export interface AssessmentContext {
     /** The position being explored. */

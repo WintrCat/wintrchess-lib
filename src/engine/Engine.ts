@@ -150,7 +150,7 @@ export abstract class Engine {
      * Setup the position on the internal board and apply an optional
      * set of UCI format or object moves to it.
      */
-    async setPosition(
+    setPosition(
         position: string | Chess,
         moves?: (string | NormalMove)[] 
     ) {
@@ -228,7 +228,6 @@ export abstract class Engine {
         });
 
         this.stopEvaluation();
-
         await this.consumeLogs(
             `go ${args}`,
             log => log.includes("bestmove"),
