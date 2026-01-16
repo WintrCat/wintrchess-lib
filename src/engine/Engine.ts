@@ -178,7 +178,11 @@ export abstract class Engine {
         this.sendCommand(`position ${args}`);
     }
 
-    /** Evaluate the position and return recommended lines. */
+    /**
+     * Evaluate the position and return recommended lines. If you
+     * do this while another evaluation is running, remember that
+     * the other will stop and return its current lines immediately.
+     */
     async evaluate(options?: EvaluateOptions) {
         const currentPosition = this.position;
         const lines: EngineLine[] = [];
@@ -223,6 +227,8 @@ export abstract class Engine {
             movetime: options?.timeLimit
         });
 
+        this.stopEvaluation();
+
         await this.consumeLogs(
             `go ${args}`,
             log => log.includes("bestmove"),
@@ -230,5 +236,10 @@ export abstract class Engine {
         );
 
         return lines;
+    }
+
+    /** Sends the `stop` command to halt any evaluation. */
+    stopEvaluation() {
+        this.sendCommand("stop");
     }
 }
