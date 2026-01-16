@@ -63,13 +63,18 @@ export abstract class Engine {
             timeout?: number;
         }
     ): Promise<string[]> {
-        this.sendCommand(command);
-        
         return new Promise((res, rej) => {
+            this.sendCommand(command);
+
             const logMessages: string[] = [];
 
+            const onErrorReceived = (message?: string) => {
+                cleanup();
+                rej(message);
+            };
+
             const timeout = options?.timeout != undefined
-                ? setTimeout(rej, options.timeout) : null;
+                ? setTimeout(onErrorReceived, options.timeout) : null;
 
             const onMessageReceived = (message: string) => {
                 options?.onLogReceived?.(message);
@@ -78,14 +83,17 @@ export abstract class Engine {
                 if (!endCondition(message)) return;
     
                 if (timeout) clearTimeout(timeout);
-                this.off("message", onMessageReceived);
-                this.off("error", rej);
-
+                cleanup();
                 res(logMessages);
-            }
+            };
+
+            const cleanup = () => {
+                this.off("message", onMessageReceived);
+                this.off("error", onErrorReceived);
+            };
 
             this.on("message", onMessageReceived);
-            this.on("error", rej);
+            this.on("error", onErrorReceived);
         });
     }
 
@@ -94,16 +102,18 @@ export abstract class Engine {
      * automatically upon creation of the engine.
      */
     async uciMode(timeout?: number) {
-        await this.consumeLogs("uci", msg => msg == "uciok", {
-            timeout: timeout ?? 10000
-        });
+        await this.consumeLogs("uci",
+            msg => msg.includes("uciok"),
+            { timeout: timeout ?? 10000 }
+        );
     }
 
     /** Send the `isready` command and wait for `readyok`. */
     async waitForReady(timeout?: number) {
-        await this.consumeLogs("isready", msg => msg == "readyok", {
-            timeout: timeout ?? 10000
-        });
+        await this.consumeLogs("isready",
+            msg => msg.includes("readyok"),
+            { timeout: timeout ?? 10000 }
+        );
     }
 
     /** Set an option on the engine. Some suggestions are provided. */
@@ -140,33 +150,29 @@ export abstract class Engine {
      * Setup the position on the internal board and apply an optional
      * set of UCI format or object moves to it.
      */
-    setPosition(
+    async setPosition(
         position: string | Chess,
-        moves: (string | NormalMove)[] = []
+        moves?: (string | NormalMove)[] 
     ) {
-        if (typeof position == "string") {
-            position = Chess.fromSetup(
-                parseFen(position).unwrap()
-            ).unwrap();
-        }
+        position = typeof position == "string"
+            ? Chess.fromSetup(parseFen(position).unwrap()).unwrap()
+            : position.clone();
 
-        const uciMoves = new Array<string>(moves.length);
-        moves.forEach((move, index) => {
+        const uciMoves = moves?.map(move => {
             const parsedMove = typeof move == "string"
                 ? parseUci(move) : move;
-
-            if (!parsedMove)
-                throw new Error(`invalid move "${move}".`);
+            if (!parsedMove) throw new Error(`invalid move "${move}".`);
 
             position.play(parsedMove);
-            uciMoves[index] = makeUci(parsedMove);
+
+            return makeUci(parsedMove);
         });
 
         this.position = position;
         
         const args = makeUCIArguments({
             fen: makeFen(position.toSetup()),
-            moves: uciMoves.join(" ")
+            moves: uciMoves?.join(" ")
         });
 
         this.sendCommand(`position ${args}`);
@@ -174,6 +180,7 @@ export abstract class Engine {
 
     /** Evaluate the position and return recommended lines. */
     async evaluate(options?: EvaluateOptions) {
+        const currentPosition = this.position;
         const lines: EngineLine[] = [];
 
         const onLogReceived = (log: string) => {
@@ -183,7 +190,7 @@ export abstract class Engine {
             const depth = Number(getUCIArgument(log, "depth"));
             const index = Number(getUCIArgument(log, "multipv")) || 1;
             const evaluation = parseScore(getUCIArgument(
-                log, "score", "(?:cp|mate) \\d+"
+                log, "score", "(?:cp|mate) -?\\d+"
             ));
             const moves = (log.match(/(?<= pv ).+/)?.[0].split(" ")
                 .map(uci => parseUci(uci) as NormalMove | undefined)
@@ -193,7 +200,7 @@ export abstract class Engine {
             if (isNaN(depth) || !evaluation) return;
 
             // Ensure white perspective evaluation
-            if (this.position.turn == "black") evaluation.value *= -1;
+            if (currentPosition.turn == "black") evaluation.value *= -1;
 
             // Create line object and push to results
             const line: EngineLine = { depth, index, moves, evaluation };
@@ -218,7 +225,7 @@ export abstract class Engine {
 
         await this.consumeLogs(
             `go ${args}`,
-            log => log.startsWith("bestmove"),
+            log => log.includes("bestmove"),
             { onLogReceived }
         );
 

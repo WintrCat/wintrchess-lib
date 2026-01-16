@@ -22,11 +22,11 @@ import { DEFAULT_OBSERVATIONS } from "./observations";
 
 export class Commentary {
     engine: Engine;
-    llm: OpenAI;
+    //llm: OpenAI;
 
     constructor(opts: CommentaryOptions) {
         this.engine = opts.engine;
-        this.llm = new OpenAI(opts.llm);
+        //this.llm = new OpenAI(opts.llm);
     }
 
     /**
@@ -39,7 +39,7 @@ export class Commentary {
         lastContext?: AssessmentContext
     ): Promise<AssessmentContextResult> {
         // Get engine lines
-        this.engine.setPosition(opts.position);
+        await this.engine.setPosition(opts.position);
         const lines = await this.engine.evaluate(opts.evaluations);
 
         // Calculate last context for dependent move data

@@ -51,9 +51,9 @@ export class ProcessEngine extends Engine {
         this.listeners.delete(fn);
         
         if (event == "message") {
-            this.process.stdout.off(event, fn);
+            this.process.stdout.off("data", listener);
         } else {
-            this.process.stderr.off(event, fn);
+            this.process.stderr.off("error", listener);
         }
     }
 

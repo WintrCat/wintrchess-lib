@@ -42,5 +42,8 @@ export function contextualizeMove(
     const captured = getEnPassantedPawn(position, move)
         || (destOccupant && { ...destOccupant, square: move.to });
 
-    return { ...move, piece, captured, lastPosition: position };
+    return {
+        ...move, piece, captured,
+        lastPosition: position.clone()
+    };
 }
