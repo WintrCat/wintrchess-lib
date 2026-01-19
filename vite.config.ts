@@ -18,6 +18,8 @@ export default defineConfig({
             external: [
                 "chessops",
                 "chessops/fen",
+                "chessops/san",
+                "chessops/util",
                 "openai",
                 "child_process"
             ]

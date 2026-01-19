@@ -7,6 +7,6 @@ export interface CommentaryOptions {
     engine: Engine;
     /** Options for an openings database to aid analysis. */
     database?: {}
-    /** Options for the LLM that produces commentary. */
+    /** Options for OpenAI API client for LLM that produces commentary. */
     llm?: ClientOptions;
 }

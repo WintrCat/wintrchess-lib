@@ -1,4 +1,3 @@
-import { makeSan } from "chessops/san";
 import { OpenAI } from "openai";
 
 import {
@@ -19,16 +18,17 @@ import {
 } from "./types/assessment/options";
 import { ObservationResult } from "./types/assessment/observation";
 import { AssessmentNode } from "./types/assessment/node";
-import { getAssessmentNodeMoves } from "./lib/assessment-node";
+import { ExplanationOptions } from "./types/ExplanationOptions";
+import { buildPrompt } from "./lib/prompt";
 import { DEFAULT_OBSERVATIONS } from "./observations";
 
 export class Commentary {
     engine: Engine;
-    //llm: OpenAI;
+    llm: OpenAI;
 
     constructor(opts: CommentaryOptions) {
         this.engine = opts.engine;
-        //this.llm = new OpenAI(opts.llm);
+        this.llm = new OpenAI(opts.llm);
     }
 
     /**
@@ -125,27 +125,17 @@ export class Commentary {
         throw new Error("not implemented yet.");
     }
 
-    /** Given an assessment, builds a prompt for an LLM to process. */
-    buildPrompt(rootAssessmentNode: AssessmentNode) {
-        let prompt = "";
+    /** Given an assessment, generate a natural language explanation. */
+    async createExplanation(
+        rootNode: AssessmentNode,
+        opts: ExplanationOptions
+    ) {
+        const response = await this.llm.responses.create({
+            model: opts.model,
+            input: buildPrompt(rootNode, opts),
+            temperature: opts.temperature || 0
+        });
 
-        const buildNode = (node: AssessmentNode) => {
-            const moves = getAssessmentNodeMoves(node)
-                .map(move => makeSan(move.lastPosition, move))
-                .join(" ");
-
-            const results = node.results
-                .map(result => result.statement)
-                .join("\n");
-
-            prompt += `${moves}\n${results}\n\n`;
-
-            for (const child of node.children) {
-                buildNode(child);
-            }
-        };
-
-        buildNode(rootAssessmentNode);
-        return prompt.trim();
+        return response.output_text;
     }
 }

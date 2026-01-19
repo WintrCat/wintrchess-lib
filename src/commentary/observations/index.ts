@@ -8,11 +8,7 @@ export const DEFAULT_OBSERVATIONS: Observation[] = [
     // Check the stage of the game
     ctx => {
         const stage = getGameStage(ctx.position.board);
-        const lastStage = ctx.move
-            && getGameStage(ctx.move?.lastPosition.board);
-
-        const statement = `This move is in the ${stage} stage of the`
-            + ` game. The last move was in the ${lastStage} stage.`;
+        const statement = `This move is in the ${stage} stage of the game.`;
 
         return { statement };
     },
