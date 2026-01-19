@@ -18,7 +18,8 @@ const promptTemplate = `
     you CANNOT create any new information outside that explicitly given.
     Speak in second person. Do not mention players or that a move was
     actually played. The response should be a single plaintext explanation,
-    with no formatting, titles, or bullet points. Whenever you reference a
+    with no formatting, titles, or bullet points. Include only the
+    explanation part itself in your response. Whenever you reference a
     move in your response, replace it with the full title of the section
     (excluding any metadata) enclosed in double curly braces, e.g., Nf6
     (black move) -> {{Bc4 Nf6}}.

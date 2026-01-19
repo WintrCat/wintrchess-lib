@@ -130,12 +130,19 @@ export class Commentary {
         rootNode: AssessmentNode,
         opts: ExplanationOptions
     ) {
-        const response = await this.llm.responses.create({
+        const completion = await this.llm.chat.completions.create({
             model: opts.model,
-            input: buildPrompt(rootNode, opts),
-            temperature: opts.temperature || 0
+            messages: [{
+                role: "user",
+                content: buildPrompt(rootNode, opts)
+            }],
+            temperature: opts.temperature
         });
 
-        return response.output_text;
+        const explanation = completion.choices[0];
+        if (!explanation)
+            throw new Error("failed to generate explanation.");
+
+        return explanation.message.content || "";
     }
 }
