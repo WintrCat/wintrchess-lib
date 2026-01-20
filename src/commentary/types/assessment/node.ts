@@ -6,6 +6,8 @@ export interface AssessmentNode {
     parent?: AssessmentNode;
     /** The assessments for any next positions. */
     children: AssessmentNode[];
+    /** If this node contains the primary move being assessed. */
+    isSource: boolean;
 
     /** The results from executed observations. */
     results: ObservationResult[];

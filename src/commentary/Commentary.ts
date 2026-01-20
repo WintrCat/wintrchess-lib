@@ -81,6 +81,7 @@ export class Commentary {
      */
     async createAssessment(
         opts: AssessmentOptions,
+        isSource = true,
         parentNode?: AssessmentNode
     ): Promise<AssessmentNode> {
         const contexts = await this.getAssessmentContext(
@@ -101,12 +102,14 @@ export class Commentary {
         const node: AssessmentNode = {
             parent: parentNode,
             children: [],
+            isSource: isSource,
             context: contexts.current,
             results: results
         };
 
         node.parent ??= contexts.last && {
             children: [node],
+            isSource: false,
             context: contexts.last,
             results: []
         };

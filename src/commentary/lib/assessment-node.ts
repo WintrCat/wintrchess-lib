@@ -1,4 +1,3 @@
-import { AnalysedMove } from "@/types";
 import { AssessmentNode } from "../types/assessment/node";
 
 /**
@@ -15,15 +14,20 @@ export function orphanizeAssessmentNode(node: AssessmentNode) {
     return orphanizeNode(node);
 }
 
-/** Returns the moves needed to reach this node from its root. */
-export function getAssessmentNodeMoves(node: AssessmentNode) {
-    const moves: AnalysedMove[] = [];
+/** Returns the nodes from the root to the given node. */
+export function getAssessmentNodeChain(
+    node: AssessmentNode,
+    movesOnly = false
+) {
+    const nodes: AssessmentNode[] = [];
     let current: AssessmentNode | undefined = node;
 
-    while (true) {
-        if (!current?.context.move) return moves;
+    while (current) {
+        if (movesOnly && !current.context.move) return nodes;
 
-        moves.unshift(current.context.move);
+        nodes.unshift(current);
         current = current.parent;
     }
+
+    return nodes;
 }

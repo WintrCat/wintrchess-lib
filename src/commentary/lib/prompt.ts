@@ -2,27 +2,30 @@ import { makeSan } from "chessops/san";
 
 import { PromptOptions } from "../types/ExplanationOptions";
 import { AssessmentNode } from "../types/assessment/node";
-import { getAssessmentNodeMoves } from "./assessment-node";
+import { getAssessmentNodeChain } from "./assessment-node";
 
 const promptTemplate = `
-    Below, I have provided some information about some Chess moves. The
-    titles of each of the following sections are moves or sets of moves
-    that are played upon the same root Chess position. The list beneath
-    them contains short statements that describe the move or the position
-    it results in. One of the sections describes the move that was played
-    during the game. You must not explicitly mention that it is the move
-    actually played, but start by explaining that particular move. Combine
-    these sections together to produce an explanation: first of the move
-    actually played, and then alternatives and responses thereto. You may
-    omit information where it is less important than other statements, but
-    you CANNOT create any new information outside that explicitly given.
-    Speak in second person. Do not mention players or that a move was
-    actually played. The response should be a single plaintext explanation,
-    with no formatting, titles, or bullet points. Include only the
-    explanation part itself in your response. Whenever you reference a
-    move in your response, replace it with the full title of the section
-    (excluding any metadata) enclosed in double curly braces, e.g., Nf6
-    (black move) -> {{Bc4 Nf6}}.
+    Below, I have provided several sections describing chess moves or move
+    sequences. All sections begin from the same root position. The title of
+    each section is the exact move or move sequence being described. The
+    bullet points beneath each title contain the only information available
+    about that move or the position it results in. Exactly one section
+    corresponds to the primary continuation. You must not explicitly state
+    that it was the move played, but you must begin your explanation by
+    explaining that section first. Afterward, explain the other sections as
+    alternative continuations or responses, using only the information given.
+    You may omit less important statements in favor of more important ones,
+    but you MUST NOT introduce any new chess facts, evaluations, motivations,
+    or consequences beyond what is explicitly stated in the bullet points. Do
+    not infer additional theory, tactics, or ideas. Speak in second person.
+    Do not mention players or that a move was played. The response must be a
+    single explanation, with no formatting, headings, or bullet points, and
+    nothing besides the explanation itself should be included in the
+    response. Whenever you reference a move, you must replace it with the
+    full sequence of moves (the title minus any metadata enclosed in
+    parentheses) enclosed in double curly braces, e.g. Bc4 (white move) ->
+    {{Nc6 Bc4}}. Stylistic expressiveness (such as emojis, interjections, or
+    tone markers) is permitted if it is natural to the specified personality.
 `;
 
 /** Builds only the introductory brief for a commentary prompt. */
@@ -51,15 +54,22 @@ export function buildPrompt(
     let prompt = buildPromptTemplate(opts);
 
     const buildNode = (node: AssessmentNode) => {
-        const moves = getAssessmentNodeMoves(node)
-            .map(move => makeSan(move.lastPosition, move))
-            .join(" ");
+        const nodeChain = getAssessmentNodeChain(node, true);
+
+        const moves = nodeChain.map(node => {
+            const move = node.context.move!;
+            return makeSan(move.lastPosition, move);
+        }).join(" ");
+
+        const moveColour = node.context.move?.lastPosition.turn;
+        const movesMetadata = ` (${moveColour} move)`
+            + (node.isSource ? " (This was the move played)" : "");
 
         const results = node.results
             .map(result => `- ${result.statement}`)
             .join("\n");
 
-        prompt += `${moves}\n${results}\n\n`;
+        prompt += `${moves}${movesMetadata}\n${results}\n\n`;
 
         for (const child of node.children) {
             buildNode(child);
