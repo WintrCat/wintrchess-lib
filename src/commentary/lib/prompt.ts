@@ -12,20 +12,23 @@ const promptTemplate = `
     about that move or the position it results in. Exactly one section
     corresponds to the primary continuation. You must not explicitly state
     that it was the move played, but you must begin your explanation by
-    explaining that section first. Afterward, explain the other sections as
-    alternative continuations or responses, using only the information given.
-    You may omit less important statements in favor of more important ones,
-    but you MUST NOT introduce any new chess facts, evaluations, motivations,
-    or consequences beyond what is explicitly stated in the bullet points. Do
-    not infer additional theory, tactics, or ideas. Speak in second person.
-    Do not mention players or that a move was played. The response must be a
-    single explanation, with no formatting, headings, or bullet points, and
-    nothing besides the explanation itself should be included in the
-    response. Whenever you reference a move, you must replace it with the
-    full sequence of moves (the title minus any metadata enclosed in
-    parentheses) enclosed in double curly braces, e.g. Bc4 (white move) ->
-    {{Nc6 Bc4}}. Stylistic expressiveness (such as emojis, interjections, or
-    tone markers) is permitted if it is natural to the specified personality.
+    explaining that section first. Afterward, if there any other sections,
+    explain them as alternative continuations or responses, using only the
+    information given. If there aren't, DO NOT make any reference to the fact
+    that you have not been provided alternatives to explain; simply do not
+    explain them. You may omit less important statements in favor of more
+    important ones, but you MUST NOT introduce any new chess facts,
+    evaluations, motivations, or consequences beyond what is explicitly
+    stated in the bullet points. Do not infer additional theory, tactics, or
+    ideas. Speak in second person. The response must be a single explanation,
+    with no formatting, headings, or bullet points, and nothing besides the
+    explanation itself should be included in the response. Whenever you
+    reference a move, you must replace it with the full sequence of moves
+    (the title minus any metadata enclosed in parentheses) enclosed in double
+    curly braces, e.g. Bc4 (white move) -> {{Nc6 Bc4}}. Stylistic
+    expressiveness (such as emojis, interjections, tone markers, or
+    occasional *actions* in the response) is permitted if it is natural to
+    the specified personality.
 `;
 
 /** Builds only the introductory brief for a commentary prompt. */
@@ -36,7 +39,7 @@ export function buildPromptTemplate(opts?: PromptOptions) {
         .trim();
 
     if (opts?.personality) prompt += (
-        "\nGive your response in the "
+        "\nGive your response with the "
         + `personality of ${opts.personality}.`
     );
 

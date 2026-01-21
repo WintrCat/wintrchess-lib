@@ -139,7 +139,7 @@ export class Commentary {
                 role: "user",
                 content: buildPrompt(rootNode, opts)
             }],
-            temperature: opts.temperature
+            temperature: opts.temperature || 1
         });
 
         const explanation = completion.choices[0];
