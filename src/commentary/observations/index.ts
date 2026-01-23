@@ -6,23 +6,19 @@ import { Observation } from "../types/assessment/observation";
 
 export const DEFAULT_OBSERVATIONS: Observation[] = [
     // Check the stage of the game
-    ctx => {
-        const stage = getGameStage(ctx.position.board);
-        const statement = `This move is in the ${stage} stage of the game.`;
-
-        return { statement };
-    },
+    // ctx => {
+    //     const stage = getGameStage(ctx.position.board);
+    //     return `This position is in the ${stage} stage of the game.`;
+    // },
     // Check if the move develops or undevelops a piece
     ctx => {
         if (!ctx.move) return null;
 
-        if (isDevelopingMove(ctx.move)) return {
-            statement: `This move develops a ${ctx.move.piece.role}.`
-        };
+        if (isDevelopingMove(ctx.move))
+            return `This move develops a ${ctx.move.piece.role}.`;
 
-        if (isUndevelopingMove(ctx.move)) return {
-            statement: `This move undevelops a ${ctx.move.piece.role}.`
-        };
+        if (isUndevelopingMove(ctx.move))
+            return `This move undevelops a ${ctx.move.piece.role}.`;
 
         return null;
     },
@@ -34,7 +30,7 @@ export const DEFAULT_OBSERVATIONS: Observation[] = [
         if (!topMove) return null;
 
         return moveEquals(topMove, ctx.move)
-            ? { statement: "This was the best move in the position." }
+            ? "This was the best move in the position."
             : null;
     }
 ];

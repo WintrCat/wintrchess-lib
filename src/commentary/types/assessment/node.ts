@@ -1,5 +1,4 @@
 import { AssessmentContext } from "./context";
-import { ObservationResult } from "./observation";
 
 export interface AssessmentNode {
     /** The assessment for the previous position. */
@@ -10,7 +9,7 @@ export interface AssessmentNode {
     isSource: boolean;
 
     /** The results from executed observations. */
-    results: ObservationResult[];
+    statements: string[];
     /** The context produced to run observations on this position. */
     context: AssessmentContext;
 }

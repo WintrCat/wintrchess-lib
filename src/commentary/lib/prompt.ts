@@ -2,7 +2,10 @@ import { makeSan } from "chessops/san";
 
 import { PromptOptions } from "../types/ExplanationOptions";
 import { AssessmentNode } from "../types/assessment/node";
-import { getAssessmentNodeChain } from "./assessment-node";
+import {
+    getAssessmentNodeChain,
+    getAssessmentNodeDepth
+} from "./assessment-node";
 
 const promptTemplate = `
     Below, I have provided several sections describing chess moves or move
@@ -13,20 +16,23 @@ const promptTemplate = `
     corresponds to the primary continuation. You must not explicitly state
     that it was the move played, but you must begin your explanation by
     explaining that section first. Afterward, explain the other sections as
-    alternative continuations or responses, using only the information given.
-    If there are no other sections, you MUST NOT mention at all that this is
-    the case; simply do not mention them. You may omit less important
-    statements in favour of more important ones, but you MUST NOT introduce
-    any new chess facts, evaluations, motivations, or consequences beyond
-    what is explicitly stated in the bullet points. Do not infer additional
-    theory, tactics, or ideas. Speak in second person. The response must be a
-    single explanation, with no formatting, headings, or bullet points, and
-    nothing besides the explanation itself should be included in the
-    response. Whenever you reference a move, you must replace it with the
-    full sequence of moves (the title minus any metadata enclosed in
-    parentheses) enclosed in double curly braces, e.g. Bc4 (white move) ->
-    {{Nc6 Bc4}}. Stylistic expressiveness (such as emojis, interjections, or
-    tone markers) is permitted if it is natural to the specified personality.
+    alternatives to the primary continuation or responses thereto, using only
+    the information given. If the primary continuation is titled "no move"
+    then you must skip explaining that section. If there are no other
+    sections, you MUST NOT mention at all that this is the case; simply do not
+    mention them. You may omit less important statements in favour of more
+    important ones, but you MUST NOT introduce any new chess facts,
+    evaluations, motivations, or consequences beyond what is explicitly stated
+    in the bullet points. Do not infer additional theory, tactics, or ideas.
+    Speak in second person. The response must be a single explanation, with no
+    formatting, headings, or bullet points, and nothing besides the
+    explanation itself should be included in the response. Whenever you
+    reference a move, you must replace it with the full sequence of moves (the
+    title minus any metadata enclosed in parentheses) enclosed in double curly
+    braces, e.g. Bc4 (white move) -> {{Nc6 Bc4}}. Whenever you reference a
+    square, you should replace it by the following format: f7 -> {{square
+    f7}}. Stylistic expressiveness (such as emojis, interjections, or tone
+    markers) is permitted if it is natural to the specified personality.
 `;
 
 /** Builds only the introductory brief for a commentary prompt. */
@@ -47,6 +53,21 @@ export function buildPromptTemplate(opts?: PromptOptions) {
     return prompt + "\n\n";
 }
 
+/** Build the metadata tags for a move section in a commentary prompt. */
+export function buildMoveMetadata(node: AssessmentNode) {
+    const metatags: string[] = [];
+
+    const moveColour = node.context.move?.lastPosition.turn;
+    if (moveColour) metatags.push(moveColour);
+
+    metatags.push(getAssessmentNodeDepth(node) <= 1
+        ? (node.isSource ? "primary continuation" : "alternative")
+        : "response"
+    );
+
+    return metatags.map(tag => `(${tag})`).join(" ");
+}
+
 /** Given an assessment, builds a commentary prompt for an LLM. */
 export function buildPrompt(
     rootNode: AssessmentNode,
@@ -55,22 +76,25 @@ export function buildPrompt(
     let prompt = buildPromptTemplate(opts);
 
     const buildNode = (node: AssessmentNode) => {
-        const nodeChain = getAssessmentNodeChain(node, true);
+        const nodeChain = getAssessmentNodeChain(node);
 
-        const moves = nodeChain.map(node => {
-            const move = node.context.move!;
-            return makeSan(move.lastPosition, move);
-        }).join(" ");
+        const moves = (nodeChain
+            .filter(node => node.context.move)
+            .map(node => {
+                const move = node.context.move!;
+                return makeSan(move.lastPosition, move);
+            })
+            .join(" ")
+        ) || "no move";
 
-        const moveColour = node.context.move?.lastPosition.turn;
-        const movesMetadata = ` (${moveColour} move)`
-            + (node.isSource ? " (This was the move played)" : "");
+        const movesMetadata = buildMoveMetadata(node);
 
-        const results = node.results
-            .map(result => `- ${result.statement}`)
-            .join("\n");
+        const statements = (node.statements
+            .map(statement => `- ${statement}`)
+            .join("\n")
+        ) || "- no statements";
 
-        prompt += `${moves}${movesMetadata}\n${results}\n\n`;
+        prompt += `${moves} ${movesMetadata}\n${statements}\n\n`;
 
         for (const child of node.children) {
             buildNode(child);

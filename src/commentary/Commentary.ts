@@ -16,7 +16,6 @@ import {
     AssessmentOptions,
     RecursiveAssessmentOptions
 } from "./types/assessment/options";
-import { ObservationResult } from "./types/assessment/observation";
 import { AssessmentNode } from "./types/assessment/node";
 import { ExplanationOptions } from "./types/ExplanationOptions";
 import { buildPrompt } from "./lib/prompt";
@@ -89,14 +88,18 @@ export class Commentary {
         );
 
         const observations = opts.observations || DEFAULT_OBSERVATIONS;
-        const results: ObservationResult[] = [];
+        const statements: string[] = [];
 
         for (const observation of observations) {
             const result = await observation(
                 contexts.current, contexts.last
             );
 
-            if (result) results.push(result);
+            if (Array.isArray(result)) {
+                statements.push(...result);
+            } else if (result) {
+                statements.push(result);
+            }
         }
 
         const node: AssessmentNode = {
@@ -104,14 +107,14 @@ export class Commentary {
             children: [],
             isSource: isSource,
             context: contexts.current,
-            results: results
+            statements: statements
         };
 
         node.parent ??= contexts.last && {
             children: [node],
             isSource: false,
             context: contexts.last,
-            results: []
+            statements: []
         };
 
         return node;
