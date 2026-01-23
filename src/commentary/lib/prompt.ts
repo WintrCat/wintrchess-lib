@@ -15,24 +15,24 @@ const promptTemplate = `
     about that move or the position it results in. Exactly one section
     corresponds to the primary continuation. You must not explicitly state
     that it was the move played, but you must begin your explanation by
-    explaining that section first. Afterward, explain the other sections as
-    alternatives to the primary continuation or responses thereto, using only
-    the information given. If the primary continuation is titled "no move"
-    then you must skip explaining that section. If there are no other
-    sections, you MUST NOT mention at all that this is the case; simply do not
-    mention them. You may omit less important statements in favour of more
-    important ones, but you MUST NOT introduce any new chess facts,
+    explaining that section first. Each section is marked as either a
+    response, alternative, or the primary continuation. Explain each of them
+    afterwards, using only the information given. If the primary continuation
+    is titled "no move" then you must skip explaining that section. If there
+    are no other sections, you MUST NOT mention at all that this is the case;
+    simply do not mention them. You MUST NOT introduce any new chess facts,
     evaluations, motivations, or consequences beyond what is explicitly stated
     in the bullet points. Do not infer additional theory, tactics, or ideas.
-    Speak in second person. The response must be a single explanation, with no
-    formatting, headings, or bullet points, and nothing besides the
-    explanation itself should be included in the response. Whenever you
-    reference a move, you must replace it with the full sequence of moves (the
-    title minus any metadata enclosed in parentheses) enclosed in double curly
-    braces, e.g. Bc4 (white move) -> {{Nc6 Bc4}}. Whenever you reference a
-    square, you should replace it by the following format: f7 -> {{square
-    f7}}. Stylistic expressiveness (such as emojis, interjections, or tone
-    markers) is permitted if it is natural to the specified personality.
+    Speak in third person, referring to moves as "this move" for example. The
+    response must be a single explanation, with no formatting, headings, or
+    bullet points, and nothing besides the explanation itself should be
+    included in the response. Whenever you reference a move, you must replace
+    it with the full sequence of moves (the title minus any metadata enclosed
+    in parentheses) enclosed in double curly braces, e.g. Bc4 (white move) ->
+    {{Nc6 Bc4}}. Whenever you reference a square, you should replace it by the
+    following format: f7 -> {{square f7}}. Stylistic expressiveness (such as
+    emojis, interjections, or tone markers) is permitted if it is natural to
+    the specified personality.
 `;
 
 /** Builds only the introductory brief for a commentary prompt. */

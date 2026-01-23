@@ -1,6 +1,6 @@
 import { moveEquals } from "chessops/util";
 
-import { getGameStage, isDevelopingMove, isUndevelopingMove } from "@/utils";
+import { isDevelopingMove, isUndevelopingMove } from "@/utils";
 import { getTopMove } from "@/engine";
 import { Observation } from "../types/assessment/observation";
 
