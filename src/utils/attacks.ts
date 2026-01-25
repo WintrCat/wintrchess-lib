@@ -1,7 +1,18 @@
-import { Chess, Move, Role, Square, attacks, opposite } from "chessops";
+import {
+    Chess,
+    NormalMove,
+    Role,
+    Square,
+    SquareSet,
+    attacks,
+    opposite
+} from "chessops";
 import { minBy } from "es-toolkit";
 
-import { LocatedPiece } from "@/types";
+import { contextualizeMove, ContextualMove } from "@/types";
+import { isPromotion } from "./pawns";
+
+const PROMOTABLE_ROLES: Role[] = ["knight", "bishop", "rook", "queen"];
 
 export const PIECE_VALUES: Record<Role, number> = {
     pawn: 1,
@@ -12,10 +23,8 @@ export const PIECE_VALUES: Record<Role, number> = {
     king: Infinity
 };
 
-/**
- * Returns attackers of a piece.
- */
-export function getAttackers(
+/** Returns moves that would capture this piece. */
+export function getAttackerMoves(
     position: Chess,
     square: Square,
     enforceLegal = true
@@ -24,25 +33,23 @@ export function getAttackers(
     if (!piece) throw new Error("no piece found.");
 
     const enemies = position.board[opposite(piece.color)];
-    const attackers: LocatedPiece[] = [];
+    const attackingMoves: ContextualMove[] = [];
 
     for (const enemySquare of enemies) {
-        const enemyPiece = position.board.get(enemySquare);
-        if (!enemyPiece) continue;
+        const enemy = position.board.get(enemySquare);
+        if (!enemy) continue;
 
-        const enemyAttacks = enforceLegal
-            ? position.dests(enemySquare)
-            : attacks(enemyPiece, enemySquare, position.board.occupied);
-        if (!enemyAttacks.has(square)) continue;
+        const attacks = getAttackMoves(position, enemySquare, enforceLegal);
+        const moves = attacks.filter(atk => atk.captured?.square == square);
 
-        attackers.push({ ...enemyPiece, square: enemySquare });
+        attackingMoves.push(...moves);
     }
 
-    return attackers;
+    return attackingMoves;
 }
 
-/** Returns squares on which a piece can capture. */
-export function getAttacks(
+/** Returns capturing moves that a piece can make. */
+export function getAttackMoves(
     position: Chess,
     square: Square,
     enforceLegal = true
@@ -50,43 +57,75 @@ export function getAttacks(
     const piece = position.board.get(square);
     if (!piece) throw new Error("no piece found.");
 
+    const enemies = position.board[opposite(piece.color)];
+    const epSquare = piece.role == "pawn" && position.epSquare;
+
+    // Get all capturing squares
     let victims = attacks(piece, square, position.board.occupied)
-        .intersect(position.board[opposite(piece.color)]);
+        .intersect(epSquare ? enemies.with(epSquare) : enemies);
 
     if (enforceLegal)
         victims = victims.intersect(position.dests(square));
 
-    return victims;
+    const attackingMoves: ContextualMove[] = [];
+
+    // Generate legal moves and, if necessary, all promotions
+    for (const victimSquare of victims) {
+        const move: NormalMove = { from: square, to: victimSquare };
+
+        if (isPromotion(position, move)) {
+            PROMOTABLE_ROLES.forEach(role => attackingMoves.push(
+                contextualizeMove(
+                    position,
+                    { ...move, promotion: role },
+                    enforceLegal
+                )
+            ));
+        } else {
+            attackingMoves.push(contextualizeMove(
+                position, move, enforceLegal
+            ));
+        }
+    }
+
+    return attackingMoves;
 }
 
 /**
  * Returns the amount of material to be won by exchanging on a
- * given square. A negative number denotes material lost.
+ * given square. A negative number denotes material loss. Where
+ * `square` may be captured by en passant, the exchange square
+ * may move to the destination of the en passant move.
+ * @param promoted If it is known that the piece at `square` was
+ * just promoted. If so, it will be treated as worth a pawn.
  */
 export function evaluateExchange(
     position: Chess,
     square: Square,
-    copyPosition = true
-): number {
-    if (copyPosition) position = position.clone();
+    promoted?: boolean
+) {
+    position = position.clone();
+    if (!SquareSet.backranks().has(square)) promoted = false;
 
-    const victim = position.board.get(square);
-    if (!victim) throw new Error("no piece to capture.");
+    const see = (square: Square, promoted = false): number => {
+        const victim = position.board.get(square);
+        if (!victim) throw new Error("no piece to capture.");
 
-    const lva = minBy(getAttackers(position, square),
-        attacker => PIECE_VALUES[attacker.role]  
-    );
-    if (!lva) return 0;
+        const lvaMove = minBy(
+            getAttackerMoves(position, square),
+            move => PIECE_VALUES[move.piece.role]
+        );
+        if (!lvaMove) return 0;
 
-    const attackMove: Move = { from: lva.square, to: square };
-    if (!position.isLegal(attackMove)) attackMove.promotion = "queen";
+        position.play(lvaMove);
 
-    position.play(attackMove);
+        return (promoted
+            ? PIECE_VALUES["pawn"]
+            : PIECE_VALUES[victim.role]
+        ) - see(lvaMove.to, !!lvaMove.promotion);
+    };
 
-    return (
-        PIECE_VALUES[victim.role]
-        - evaluateExchange(position, square, false)
-    );
+    return see(square, promoted);
 }
 
 /** Returns whether a piece can be taken for free. */

@@ -1,6 +1,6 @@
 import { Chess, NormalMove, Piece } from "chessops";
 
-import { getEnPassantedPawn } from "@/utils/en-passant";
+import { getEnPassantedPawn } from "@/utils/pawns";
 import { LocatedPiece } from "./LocatedPiece";
 
 /** A move with the context of the position it was played in. */
@@ -31,9 +31,11 @@ export interface AnalysedMove extends ContextualMove {
 /** Contextualize a move given a position and the move applied to it. */
 export function contextualizeMove(
     position: Chess,
-    move: NormalMove
+    move: NormalMove,
+    enforceLegal = true
 ): ContextualMove {
-    if (!position.isLegal(move)) throw new Error("illegal move.");
+    if (enforceLegal && !position.isLegal(move))
+        throw new Error("illegal move.");
 
     const piece = position.board.get(move.from);
     if (!piece) throw new Error("piece not found.");
