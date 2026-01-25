@@ -13,20 +13,29 @@ export const PIECE_VALUES: Record<Role, number> = {
 };
 
 /**
- * Returns legal attackers of a square. Will not return any squares
- * if it is not the opposite colour of the square's turn to move.
+ * Returns attackers of a piece.
  */
-export function getAttackers(position: Chess, square: Square) {
-    const moves = position.allDests();
+export function getAttackers(
+    position: Chess,
+    square: Square,
+    enforceLegal = true
+) {
+    const piece = position.board.get(square);
+    if (!piece) throw new Error("no piece found.");
+
+    const enemies = position.board[opposite(piece.color)];
     const attackers: LocatedPiece[] = [];
 
-    for (const [from, dests] of moves.entries()) {
-        if (!dests.has(square)) continue;
-        
-        const piece = position.board.get(from);
-        if (!piece) continue;
+    for (const enemySquare of enemies) {
+        const enemyPiece = position.board.get(enemySquare);
+        if (!enemyPiece) continue;
 
-        attackers.push({ ...piece, square: from });
+        const enemyAttacks = enforceLegal
+            ? position.dests(enemySquare)
+            : attacks(enemyPiece, enemySquare, position.board.occupied);
+        if (!enemyAttacks.has(square)) continue;
+
+        attackers.push({ ...enemyPiece, square: enemySquare });
     }
 
     return attackers;
