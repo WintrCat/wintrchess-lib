@@ -80,11 +80,13 @@ export class Commentary {
      */
     async createAssessment(
         opts: AssessmentOptions,
-        isSource = true,
-        parentNode?: AssessmentNode
+        nodeOpts?: {
+            isSource?: boolean;
+            parentNode?: AssessmentNode;
+        }
     ): Promise<AssessmentNode> {
         const contexts = await this.getAssessmentContext(
-            opts, parentNode?.context
+            opts, nodeOpts?.parentNode?.context
         );
 
         const observations = opts.observations || DEFAULT_OBSERVATIONS;
@@ -103,9 +105,9 @@ export class Commentary {
         }
 
         const node: AssessmentNode = {
-            parent: parentNode,
+            parent: nodeOpts?.parentNode,
             children: [],
-            isSource: isSource,
+            isSource: nodeOpts?.isSource || true,
             context: contexts.current,
             statements: statements
         };
