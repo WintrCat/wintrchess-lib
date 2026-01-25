@@ -57,10 +57,16 @@ export class Commentary {
             if (!lastEvaluation || !evaluation)
                 throw new Error("engine produced invalid or no lines.");
 
+            const loss = [
+                lastEvaluation,
+                evaluation,
+                opts.move.lastPosition.turn
+            ] as const;
+
             analysedMove = {
                 ...opts.move,
-                winPercentLoss: getWinPercentLoss(lastEvaluation, evaluation),
-                centipawnLoss: getCentipawnLoss(lastEvaluation, evaluation)
+                winPercentLoss: getWinPercentLoss(...loss),
+                centipawnLoss: getCentipawnLoss(...loss)
             };
         }
 

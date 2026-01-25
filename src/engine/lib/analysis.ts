@@ -47,9 +47,12 @@ export function getWinPercent(
 /** Returns the Win% loss between 2 consecutive evaluations. */
 export function getWinPercentLoss(
     before: Evaluation,
-    after: Evaluation
+    after: Evaluation,
+    perspective: Color = "white"
 ) {
-    const loss = getWinPercent(before) - getWinPercent(after);
+    const loss = getWinPercent(before, perspective)
+        - getWinPercent(after, perspective);
+
     return Math.max(0, loss);
 }
 
@@ -59,9 +62,11 @@ export function getWinPercentLoss(
  */
 export function getCentipawnLoss(
     before: Evaluation,
-    after: Evaluation
+    after: Evaluation,
+    perspective: Color = "white"
 ) {
     if (before.type != "cp" || after.type != "cp") return;
 
-    return Math.max(0, before.value - after.value);
+    return (before.value - after.value)
+        * (perspective == "white" ? 1 : -1);
 }

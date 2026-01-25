@@ -12,6 +12,9 @@ import { minBy } from "es-toolkit";
 import { contextualizeMove, ContextualMove } from "@/types";
 import { isPromotion } from "./pawns";
 
+type ContextualCapture = Omit<ContextualMove, "captured">
+    & Required<Pick<ContextualMove, "captured">>;
+
 const PROMOTABLE_ROLES: Role[] = ["knight", "bishop", "rook", "queen"];
 
 export const PIECE_VALUES: Record<Role, number> = {
@@ -33,7 +36,7 @@ export function getAttackerMoves(
     if (!piece) throw new Error("no piece found.");
 
     const enemies = position.board[opposite(piece.color)];
-    const attackingMoves: ContextualMove[] = [];
+    const attackingMoves: ContextualCapture[] = [];
 
     for (const enemySquare of enemies) {
         const enemy = position.board.get(enemySquare);
@@ -42,13 +45,16 @@ export function getAttackerMoves(
         const attacks = getAttackMoves(position, enemySquare, enforceLegal);
         const moves = attacks.filter(atk => atk.captured?.square == square);
 
-        attackingMoves.push(...moves);
+        attackingMoves.push(...moves as ContextualCapture[]);
     }
 
     return attackingMoves;
 }
 
-/** Returns capturing moves that a piece can make. */
+/**
+ * Returns capturing moves that a piece can make. In check positions
+ * whose turn has been flipped, king captures will be included.
+ */
 export function getAttackMoves(
     position: Chess,
     square: Square,
@@ -56,6 +62,9 @@ export function getAttackMoves(
 ) {
     const piece = position.board.get(square);
     if (!piece) throw new Error("no piece found.");
+
+    position = position.clone();
+    position.turn = piece.color;
 
     const enemies = position.board[opposite(piece.color)];
     const epSquare = piece.role == "pawn" && position.epSquare;
@@ -67,7 +76,7 @@ export function getAttackMoves(
     if (enforceLegal)
         victims = victims.intersect(position.dests(square));
 
-    const attackingMoves: ContextualMove[] = [];
+    const attackingMoves: ContextualCapture[] = [];
 
     // Generate legal moves and, if necessary, all promotions
     for (const victimSquare of victims) {
@@ -79,12 +88,12 @@ export function getAttackMoves(
                     position,
                     { ...move, promotion: role },
                     enforceLegal
-                )
+                ) as ContextualCapture
             ));
         } else {
             attackingMoves.push(contextualizeMove(
                 position, move, enforceLegal
-            ));
+            ) as ContextualCapture);
         }
     }
 
