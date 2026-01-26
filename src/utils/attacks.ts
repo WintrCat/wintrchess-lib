@@ -163,12 +163,3 @@ export function evaluateExchange(
 
     return see(square, promoted);
 }
-
-/**
- * Returns whether a piece is hanging.
- * TO-DO: hanging even if it isn't but technically after exchanges
- * a pawn is won for example.
- */
-export function isPieceHanging(position: Chess, square: Square) {
-    return evaluateExchange(position, square) > 0;
-}

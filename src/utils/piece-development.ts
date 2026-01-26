@@ -8,6 +8,9 @@ import { getGameStage } from "./game-stage";
  * during the opening stage of the game.
  */
 export function isDevelopingMove(move: ContextualMove) {
+    if (move.piece.role == "pawn" || move.piece.role == "king")
+        return false;
+
     const fromStarting = SquareSet.backranks().has(move.from);
     const gameStage = getGameStage(move.lastPosition.board);
 
@@ -19,6 +22,8 @@ export function isDevelopingMove(move: ContextualMove) {
  * backrank in the opening stage of the game.
  */
 export function isUndevelopingMove(move: ContextualMove) {
+    if (move.piece.role == "king") return false;
+
     const toBackrank = SquareSet.backrank(move.piece.color).has(move.to);
     const gameStage = getGameStage(move.lastPosition.board);
 

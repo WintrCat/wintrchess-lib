@@ -92,7 +92,7 @@ export function buildPrompt(
         const statements = (node.statements
             .map(statement => `- ${statement}`)
             .join("\n")
-        ) || "- no statements";
+        ) || "- No statements";
 
         prompt += `${moves} ${movesMetadata}\n${statements}\n\n`;
 

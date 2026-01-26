@@ -8,6 +8,7 @@ export * from "./types/assessment/observation";
 export * from "./types/assessment/options";
 
 export * from "./lib/assessment-node";
+export * from "./lib/names";
 export * from "./lib/prompt";
 
 export * from "./observations/index";

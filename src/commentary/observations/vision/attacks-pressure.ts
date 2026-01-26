@@ -1,16 +1,15 @@
-import { makeSquare } from "chessops";
 import { differenceWith, minBy } from "es-toolkit";
 
 import {
+    evaluateExchange,
     getAttackerMoves,
     getAttackMoves,
     getDefenders,
-    isPieceHanging,
     PIECE_VALUES
 } from "@/utils";
-import { Observation } from "../types/assessment/observation";
+import { Observation, pieceName } from "@/commentary";
 
-export const attacksControl: Observation = ctx => {
+export const attacksPressure: Observation = ctx => {
     if (!ctx.move) return null;
 
     const statements: string[] = [];
@@ -24,9 +23,11 @@ export const attacksControl: Observation = ctx => {
     for (const attack of newAttacks) {
         if (attack.captured.role == "king") continue;
 
+        const defenders = getDefenders(ctx.position, attack.to);
+
         let verb = "";
 
-        if (isPieceHanging(ctx.position, attack.to)) {
+        if (evaluateExchange(ctx.position, attack.to) > 0) {
             verb = "attacks";
         } else {
             // Not defended by a pawn or LVA <= attacked piece value
@@ -37,9 +38,7 @@ export const attacksControl: Observation = ctx => {
             );
             if (!lva) continue;
 
-            const pawnDefended = getDefenders(ctx.position, attack.to)
-                .some(def => def.role == "pawn");
-
+            const pawnDefended = defenders.some(def => def.role == "pawn");
             const lvaValue = PIECE_VALUES[lva.piece.role];
             const attackedPieceValue = PIECE_VALUES[attack.captured.role];
 
@@ -47,9 +46,13 @@ export const attacksControl: Observation = ctx => {
                 verb = "applies pressure to";
         }
 
+        const kingDefender = defenders.every(def => def.role == "king")
+            ? ", which is only defended by the king and could be weak"
+            : "";
+
         if (verb) statements.push(
-            `This move ${verb} the ${attack.captured.role}`
-            + ` on ${makeSquare(attack.captured.square)}.`
+            `This move ${verb} the ${pieceName(attack.captured)}`
+            + `${kingDefender}.`
         );
     }
 
