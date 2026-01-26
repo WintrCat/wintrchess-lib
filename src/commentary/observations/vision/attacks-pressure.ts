@@ -46,9 +46,9 @@ export const attacksPressure: Observation = ctx => {
                 verb = "applies pressure to";
         }
 
-        const kingDefender = defenders.every(def => def.role == "king")
-            ? ", which is only defended by the king and could be weak"
-            : "";
+        const kingDefender = (
+            defenders.length == 1 && defenders[0]?.role == "king"
+        ) ? ", which is only defended by the king and could be weak" : "";
 
         if (verb) statements.push(
             `This move ${verb} the ${pieceName(attack.captured)}`

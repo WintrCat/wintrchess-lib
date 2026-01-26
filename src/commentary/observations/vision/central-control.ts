@@ -17,7 +17,7 @@ const fianchettoSquares = SquareSet.empty()
 
 export const centralControl: Observation = ctx => {
     if (!ctx.move) return null;
-    if (!isDevelopingMove(ctx.move)) return null;
+    if (!isDevelopingMove(ctx.move, false)) return null;
 
     const piece = ctx.move.piece;
 
