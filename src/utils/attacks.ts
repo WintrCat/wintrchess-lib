@@ -9,7 +9,7 @@ import {
 } from "chessops";
 import { minBy } from "es-toolkit";
 
-import { contextualizeMove, ContextualMove } from "@/types";
+import { contextualizeMove, ContextualMove, LocatedPiece } from "@/types";
 import { isPromotion } from "./pawns";
 
 type ContextualCapture = Omit<ContextualMove, "captured">
@@ -101,6 +101,33 @@ export function getAttackMoves(
 }
 
 /**
+ * Returns the defenders of a piece on `square`. Pinned
+ * pieces still count as a defenders.
+ */
+export function getDefenders(position: Chess, square: Square) {
+    const piece = position.board.get(square);
+    if (!piece) return [];
+
+    const allies = position.board[piece.color];
+    const defenders: LocatedPiece[] = [];
+
+    for (const allySquare of allies) {
+        const ally = position.board.get(allySquare);
+        if (!ally) continue;
+
+        const controlled = attacks(
+            ally, allySquare, position.board.occupied
+        );
+
+        if (controlled.has(square)) defenders.push({
+            ...ally, square: allySquare
+        });
+    }
+
+    return defenders;
+}
+
+/**
  * Returns the amount of material to be won by exchanging on a
  * given square. A negative number denotes material loss. Where
  * `square` may be captured by en passant, the exchange square
@@ -137,7 +164,11 @@ export function evaluateExchange(
     return see(square, promoted);
 }
 
-/** Returns whether a piece can be taken for free. */
+/**
+ * Returns whether a piece is hanging.
+ * TO-DO: hanging even if it isn't but technically after exchanges
+ * a pawn is won for example.
+ */
 export function isPieceHanging(position: Chess, square: Square) {
     return evaluateExchange(position, square) > 0;
 }
