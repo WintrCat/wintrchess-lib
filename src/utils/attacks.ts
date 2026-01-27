@@ -129,9 +129,9 @@ export function getDefenders(position: Chess, square: Square) {
 
 /**
  * Returns the amount of material to be won by exchanging on a
- * given square. A negative number denotes material loss. Where
- * `square` may be captured by en passant, the exchange square
- * may move to the destination of the en passant move.
+ * given square at least once. A negative number denotes material
+ * loss. Where `square` may be captured by en passant, the exchange
+ * square may move to the destination of the en passant move.
  * @param promoted If it is known that the piece at `square` was
  * just promoted. If so, it will be treated as worth a pawn.
  */
@@ -143,7 +143,7 @@ export function evaluateExchange(
     position = position.clone();
     if (!SquareSet.backranks().has(square)) promoted = false;
 
-    const see = (square: Square, promoted = false): number => {
+    const see = (square: Square, promoted = false, root = true): number => {
         const victim = position.board.get(square);
         if (!victim) throw new Error("no piece to capture.");
 
@@ -155,10 +155,12 @@ export function evaluateExchange(
 
         position.play(lvaMove);
 
-        return (promoted
+        const value = (promoted
             ? PIECE_VALUES["pawn"]
             : PIECE_VALUES[victim.role]
-        ) - see(lvaMove.to, !!lvaMove.promotion);
+        ) - see(lvaMove.to, !!lvaMove.promotion, false);
+
+        return root ? value : Math.max(0, value);
     };
 
     return see(square, promoted);
