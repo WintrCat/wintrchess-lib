@@ -15,6 +15,12 @@ Library with Chess operations and tools for WintrChess.
 
 `wintrchess/types` - All the miscellaneous TypeScript types.
 
+## Compiling
+
+- `pnpm install` / `npm install`
+
+- `pnpm build` / `npm run build`
+
 > [!NOTE]
 > This is not currently in use on the live WintrChess deployment.
 > But it will be eventually! ✨
