@@ -2,7 +2,7 @@ import { differenceWith, minBy } from "es-toolkit";
 
 import {
     evaluateExchange,
-    getAttackerMoves,
+    getAttackers,
     getAttackMoves,
     getDefenders,
     PIECE_VALUES
@@ -25,7 +25,7 @@ export const attacksPressure: Observation = ctx => {
 
         const defenders = getDefenders(ctx.position, attack.to);
 
-        let verb = "";
+        let verb: string | undefined;
 
         if (evaluateExchange(ctx.position, attack.to) > 0) {
             verb = "attacks";
@@ -33,13 +33,13 @@ export const attacksPressure: Observation = ctx => {
             // Not defended by a pawn or LVA <= attacked piece value
             // constitutes real pressure being applied to the piece
             const lva = minBy(
-                getAttackerMoves(ctx.position, attack.to),
-                atk => PIECE_VALUES[atk.piece.role]
+                getAttackers(ctx.position, attack.to),
+                atk => PIECE_VALUES[atk.role]
             );
             if (!lva) continue;
 
             const pawnDefended = defenders.some(def => def.role == "pawn");
-            const lvaValue = PIECE_VALUES[lva.piece.role];
+            const lvaValue = PIECE_VALUES[lva.role];
             const attackedPieceValue = PIECE_VALUES[attack.captured.role];
 
             if (!pawnDefended || lvaValue <= attackedPieceValue)
