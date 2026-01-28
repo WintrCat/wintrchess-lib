@@ -1,6 +1,6 @@
 # 📚 WintrChess Library
 
-Library with Chess operations and tools for WintrChess.
+TypeScript library with Chess operations and tools for WintrChess.
 
 ###### For the time being, documentation is provided via JSDoc.
 
