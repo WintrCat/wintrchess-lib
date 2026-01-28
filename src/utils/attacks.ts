@@ -37,7 +37,7 @@ export function getAttackerMoves(
     if (!piece) throw new Error("no piece found.");
 
     const enemies = position.board[opposite(piece.color)];
-    const attackingMoves: ContextualCapture[] = [];
+    const attackerMoves: ContextualCapture[] = [];
 
     for (const enemySquare of enemies) {
         const enemy = position.board.get(enemySquare);
@@ -46,10 +46,10 @@ export function getAttackerMoves(
         const attacks = getAttackMoves(position, enemySquare, enforceLegal);
         const moves = attacks.filter(atk => atk.captured?.square == square);
 
-        attackingMoves.push(...moves as ContextualCapture[]);
+        attackerMoves.push(...moves as ContextualCapture[]);
     }
 
-    return attackingMoves;
+    return attackerMoves;
 }
 
 /**
