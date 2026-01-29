@@ -2,8 +2,7 @@ import { SquareSet } from "chessops";
 
 import { ContextualMove } from "@/types";
 import { getGameStage } from "./game-stage";
-
-const pawnRanks = SquareSet.fromRank(1).union(SquareSet.fromRank(6));
+import { pawnRanks } from "./square-sets";
 
 /**
  * Returns whether the move puts a piece off of its starting square

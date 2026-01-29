@@ -1,19 +1,12 @@
-import { attacks, parseSquare, SquareSet } from "chessops";
+import { attacks, SquareSet } from "chessops";
 
 import { Observation } from "@/commentary";
-import { getGameStage, isDevelopingMove } from "@/utils";
-
-const flankSquares = SquareSet.empty()
-    .with(parseSquare("c4"))
-    .with(parseSquare("c5"))
-    .with(parseSquare("f4"))
-    .with(parseSquare("f5"));
-
-const fianchettoSquares = SquareSet.empty()
-    .with(parseSquare("b2"))
-    .with(parseSquare("g2"))
-    .with(parseSquare("b7"))
-    .with(parseSquare("g7"));
+import {
+    getGameStage,
+    isDevelopingMove,
+    flankSquares,
+    fianchettoSquares
+} from "@/utils";
 
 export const centralControl: Observation = ctx => {
     if (!ctx.move) return null;

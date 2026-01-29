@@ -220,3 +220,11 @@ export function evaluateExchange(
         
     return see(square, promoted);
 }
+
+/**
+ * Returns whether the opponent can exchange on this square at least
+ * once for a material gain of at least 1.
+ */
+export function isHanging(...args: Parameters<typeof evaluateExchange>) {
+    return evaluateExchange(...args) > 0;
+}

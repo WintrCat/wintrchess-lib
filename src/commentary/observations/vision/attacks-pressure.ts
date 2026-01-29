@@ -1,10 +1,11 @@
 import { differenceWith, minBy } from "es-toolkit";
 
 import {
-    evaluateExchange,
     getAttackers,
     getAttackMoves,
     getDefenders,
+    isHanging,
+    mainlandSquares,
     PIECE_VALUES
 } from "@/utils";
 import { Observation, pieceName } from "@/commentary";
@@ -14,6 +15,7 @@ export const attacksPressure: Observation = ctx => {
 
     const statements: string[] = [];
 
+    // Attacks that the moved piece makes that it didn't last move
     const newAttacks = differenceWith(
         getAttackMoves(ctx.position, ctx.move.to),
         getAttackMoves(ctx.move.lastPosition, ctx.move.from),
@@ -23,13 +25,29 @@ export const attacksPressure: Observation = ctx => {
     for (const attack of newAttacks) {
         if (attack.captured.role == "king") continue;
 
+        // Defenders of the attacked piece
         const defenders = getDefenders(ctx.position, attack.to);
 
-        let verb: string | undefined;
+        // Whether the attacked piece was already hanging
+        const victimHanging = {
+            before: isHanging(ctx.move.lastPosition, attack.to),
+            after: isHanging(ctx.position, attack.to)
+        };
 
-        if (evaluateExchange(ctx.position, attack.to) > 0) {
+        let verb = "", attackersComment = "";
+
+        if (!victimHanging.before && victimHanging.after) {
             verb = "attacks";
-        } else {
+
+            const attackers = getAttackers(ctx.position, attack.to)
+                .map(atk => atk.role);
+
+            if (attackers.length == 2) {
+                attackersComment = ` with the ${attackers.join(" and ")}`;
+            } else if (attackers.length > 2) {
+                attackersComment = ` with ${attackers.length} pieces`;
+            }
+        } else if (mainlandSquares.has(attack.to)) {
             // Not defended by a pawn or LVA <= attacked piece value
             // constitutes real pressure being applied to the piece
             const lva = minBy(
@@ -52,7 +70,7 @@ export const attacksPressure: Observation = ctx => {
 
         if (verb) statements.push(
             `This move ${verb} the ${pieceName(attack.captured)}`
-            + `${kingDefender}.`
+            + `${attackersComment}${kingDefender}.`
         );
     }
 
