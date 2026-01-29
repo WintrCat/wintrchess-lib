@@ -130,8 +130,8 @@ export class Commentary {
 
     /**
      * Create an assessment on a given position, and recurse into
-     * other variations that are deemed relevant. Returns a map of
-     * explored positions to their assessment results.
+     * other variations that are deemed relevant. Returns a tree of
+     * explored positions and their assessments.
      */
     async createRecursiveAssessment(opts: RecursiveAssessmentOptions) {
         // const rootAssessment = await this.createAssessment(opts);
