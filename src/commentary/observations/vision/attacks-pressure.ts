@@ -8,7 +8,7 @@ import {
     mainlandSquares,
     PIECE_VALUES
 } from "@/utils";
-import { Observation, pieceName } from "@/commentary";
+import { Observation, pieceLabel } from "@/commentary";
 
 export const attacksPressure: Observation = ctx => {
     if (!ctx.move) return null;
@@ -40,7 +40,7 @@ export const attacksPressure: Observation = ctx => {
             verb = "attacks";
 
             const attackers = getAttackers(ctx.position, attack.to)
-                .map(atk => atk.role);
+                .map(atk => pieceLabel(atk));
 
             if (attackers.length == 2) {
                 attackersComment = ` with the ${attackers.join(" and ")}`;
@@ -64,12 +64,17 @@ export const attacksPressure: Observation = ctx => {
                 verb = "applies pressure to";
         }
 
+        // If only defender of attacked piece is its king
         const kingDefender = (
-            defenders.length == 1 && defenders[0]?.role == "king"
-        ) ? ", which is only defended by the king and could be weak" : "";
+            defenders.length == 1
+            && defenders[0]?.role == "king"
+        ) ? (
+            ", which is only defended by the "
+            + `${pieceLabel(defenders[0])} and could be weak`
+        ) : "";
 
         if (verb) statements.push(
-            `This move ${verb} the ${pieceName(attack.captured)}`
+            `This move ${verb} the ${pieceLabel(attack.captured, true)}`
             + `${attackersComment}${kingDefender}.`
         );
     }

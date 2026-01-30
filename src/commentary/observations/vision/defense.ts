@@ -1,6 +1,6 @@
 import { attacks } from "chessops";
 
-import { Observation, pieceName } from "@/commentary";
+import { Observation, pieceLabel } from "@/commentary";
 import { isHanging } from "@/utils";
 
 export const defense: Observation = ({ move, position }) => {
@@ -20,7 +20,7 @@ export const defense: Observation = ({ move, position }) => {
         const afterHanging = isHanging(position, allySquare);
 
         if (beforeHanging && !afterHanging) defendedAllies.push(
-            pieceName({ ...ally, square: allySquare })
+            pieceLabel({ ...ally, square: allySquare })
         );
     }
 

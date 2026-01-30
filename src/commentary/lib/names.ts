@@ -1,7 +1,14 @@
-import { makeSquare } from "chessops";
+import { makeSquare, Square } from "chessops";
 
 import { LocatedPiece } from "@/types";
 
-export function pieceName(piece: LocatedPiece) {
-    return `${piece.role} on ${makeSquare(piece.square)}`;
+/** Parseable string for board squares. */
+export function squareLabel(square: Square) {
+    return `{{square ${makeSquare(square)}}}`;
+}
+
+/** Parseable string for pieces */
+export function pieceLabel(piece: LocatedPiece, includeSquare = false) {
+    const header = includeSquare ? "full" : "piece";
+    return `{{${header} ${makeSquare(piece.square)}}}`;
 }

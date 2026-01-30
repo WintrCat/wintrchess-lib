@@ -26,13 +26,10 @@ const promptTemplate = `
     Speak in third person, referring to moves as "this move" for example. The
     response must be a single explanation, with no formatting, headings, or
     bullet points, and nothing besides the explanation itself should be
-    included in the response. Whenever you reference a move, you must replace
-    it with the full sequence of moves (the title minus any metadata enclosed
-    in parentheses) enclosed in double curly braces, e.g. Bc4 (white move) ->
-    {{Nc6 Bc4}}. Whenever you reference a square, you should replace it by the
-    following format: f7 -> {{square f7}}. Stylistic expressiveness (such as
-    emojis, interjections, or tone markers) is permitted if it is natural to
-    the specified personality.
+    included in the response. Anything enclosed in double curly braces should
+    remain in exactly the same format in the final response. Stylistic
+    expressiveness (such as emojis, interjections, or tone markers) is
+    permitted if it is natural to the specified personality.
 `;
 
 /** Builds only the introductory brief for a commentary prompt. */

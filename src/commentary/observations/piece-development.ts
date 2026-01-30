@@ -1,5 +1,7 @@
 import { getAttackMoves, isDevelopingMove, isUndevelopingMove } from "@/utils";
+import { LocatedPiece } from "@/types";
 import { Observation } from "../types/assessment/observation";
+import { pieceLabel } from "../lib/names";
 
 export const pieceDevelopment: Observation = ctx => {
     if (!ctx.move) return null;
@@ -14,8 +16,12 @@ export const pieceDevelopment: Observation = ctx => {
         const activityStatement = afterAttacks.length > beforeAttacks.length
             ? " to a more active square" : "";
 
+        const locatedPiece: LocatedPiece = {
+            ...ctx.move.piece, square: ctx.move.to
+        };
+
         return (
-            `This move develops a ${ctx.move.piece.role}`
+            `This move develops a ${pieceLabel(locatedPiece)}`
             + `${activityStatement}.`
         );
     }
