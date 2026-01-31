@@ -1,5 +1,5 @@
-import { getAttackMoves, isDevelopingMove, isUndevelopingMove } from "@/utils";
 import { LocatedPiece } from "@/types";
+import { isDevelopingMove, isUndevelopingMove } from "@/utils";
 import { Observation } from "../types/assessment/observation";
 import { pieceLabel } from "../lib/names";
 
