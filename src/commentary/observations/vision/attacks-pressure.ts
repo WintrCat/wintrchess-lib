@@ -2,10 +2,9 @@ import { differenceWith, minBy } from "es-toolkit";
 
 import {
     getAttackers,
-    getAttackMoves,
     getDefenders,
     isHanging,
-    mainlandSquares,
+    SquareSet,
     PIECE_VALUES
 } from "@/utils";
 import { Observation, pieceLabel } from "@/commentary";
@@ -17,8 +16,8 @@ export const attacksPressure: Observation = ctx => {
 
     // Attacks that the moved piece makes that it didn't last move
     const newAttacks = differenceWith(
-        getAttackMoves(ctx.position, ctx.move.to),
-        getAttackMoves(ctx.move.lastPosition, ctx.move.from),
+        ctx.move.attackMoves,
+        ctx.move.lastAttackMoves,
         (a, b) => a.captured.square == b.captured.square
     );
 
@@ -47,7 +46,7 @@ export const attacksPressure: Observation = ctx => {
             } else if (attackers.length > 2) {
                 attackersComment = ` with ${attackers.length} pieces`;
             }
-        } else if (mainlandSquares.has(attack.to)) {
+        } else if (SquareSet.mainland().has(attack.to)) {
             // Not defended by a pawn or LVA <= attacked piece value
             // constitutes real pressure being applied to the piece
             const lva = minBy(

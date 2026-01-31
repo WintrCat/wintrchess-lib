@@ -16,6 +16,11 @@ export interface ContextualMove extends NormalMove {
     lastPosition: Chess;
 }
 
+/** A contextual move with a definite capture. */
+export interface ContextualCapture extends ContextualMove {
+    captured: LocatedPiece;
+}
+
 export interface AnalysedMove extends ContextualMove {
     /** e.g. `brilliant`, `blunder`, `theory` etc. */
     // classification: Classification;

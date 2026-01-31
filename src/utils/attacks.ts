@@ -3,18 +3,15 @@ import {
     NormalMove,
     Role,
     Square,
-    SquareSet,
     attacks,
     kingAttacks,
     opposite
 } from "chessops";
 import { minBy, uniqWith } from "es-toolkit";
 
-import { contextualizeMove, ContextualMove, LocatedPiece } from "@/types";
+import { contextualizeMove, ContextualCapture, LocatedPiece } from "@/types";
+import { SquareSet } from "./square-sets";
 import { isPromotion } from "./pawns";
-
-type ContextualCapture = Omit<ContextualMove, "captured">
-    & Required<Pick<ContextualMove, "captured">>;
 
 const PROMOTABLE_ROLES: Role[] = ["knight", "bishop", "rook", "queen"];
 

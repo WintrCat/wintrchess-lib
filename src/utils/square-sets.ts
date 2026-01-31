@@ -1,21 +1,52 @@
-import { SquareSet, parseSquare } from "chessops";
+import { Color, parseSquare, SquareSet as NativeSquareSet } from "chessops";
 
-export const pawnRanks = SquareSet.fromRank(1)
-    .union(SquareSet.fromRank(6));
+function colouredSet(white: SquareSet, black: SquareSet, chosen?: Color) {
+    if (!chosen) return white.union(black);
+    return chosen == "white" ? white : black;
+}
 
-export const flankSquares = SquareSet.empty()
-    .with(parseSquare("c4"))
-    .with(parseSquare("c5"))
-    .with(parseSquare("f4"))
-    .with(parseSquare("f5"));
+export class SquareSet extends NativeSquareSet {
+    /** The 2nd and 7th ranks. */
+    static pawnRanks(colour?: Color) {
+        return colouredSet(
+            SquareSet.fromRank(1),
+            SquareSet.fromRank(6),
+            colour
+        );
+    }
 
-export const fianchettoSquares = SquareSet.empty()
-    .with(parseSquare("b2"))
-    .with(parseSquare("g2"))
-    .with(parseSquare("b7"))
-    .with(parseSquare("g7"));
+    /** The 4th and 5th ranks. */
+    static centralRanks() {
+        return SquareSet.fromRank(3).union(SquareSet.fromRank(4));
+    }
 
-/** All the squares between the two armies at the start. */
-export const mainlandSquares = SquareSet.full().xor(
-    SquareSet.backranks().union(pawnRanks)
-);
+    /** a-file and h-file. */
+    static edgeFiles() {
+        return SquareSet.fromFile(0).union(SquareSet.fromFile(7));
+    }
+
+    /** Flank pawn squares: `c4`, `c5`, `f4`, `f5`. */
+    static flank(colour?: Color) {
+        return colouredSet(
+            SquareSet.fromSquare(parseSquare("c4")).with(parseSquare("f4")),
+            SquareSet.fromSquare(parseSquare("c5")).with(parseSquare("f5")),
+            colour
+        );
+    }
+
+    /** Fianchetto squares: `b2`, `g2`, `b7`, `g7`. */
+    static fianchetto(colour?: Color) {
+        return colouredSet(
+            SquareSet.fromSquare(parseSquare("b2")).with(parseSquare("g2")),
+            SquareSet.fromSquare(parseSquare("b7")).with(parseSquare("g7")),
+            colour
+        )
+    }
+
+    /** All the squares between the two armies at the start. */
+    static mainland() {
+        return SquareSet.full().xor(
+            SquareSet.backranks().union(SquareSet.pawnRanks())
+        );
+    }
+}

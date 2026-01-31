@@ -10,15 +10,13 @@ export const pins: Observation = ctx => {
     const position = ctx.position.clone();
     position.turn = ctx.move.piece.color;
 
-    const attacks = getAttackMoves(position, ctx.move.to);
-
-    for (const attack of attacks) {
+    for (const attack of ctx.move.attackMoves) {
         const victim = position.board.take(attack.captured.square);
         if (!victim) continue;
 
         const newAttacks = differenceWith(
             getAttackMoves(position, ctx.move.to),
-            attacks,
+            ctx.move.attackMoves,
             (a, b) => a.captured.square == b.captured.square
         );
 

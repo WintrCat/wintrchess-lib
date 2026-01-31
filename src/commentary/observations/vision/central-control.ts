@@ -1,12 +1,7 @@
-import { attacks, SquareSet } from "chessops";
+import { attacks } from "chessops";
 
 import { Observation } from "@/commentary";
-import {
-    getGameStage,
-    isDevelopingMove,
-    flankSquares,
-    fianchettoSquares
-} from "@/utils";
+import { getGameStage, isDevelopingMove, SquareSet } from "@/utils";
 
 export const centralControl: Observation = ctx => {
     if (!ctx.move) return null;
@@ -29,11 +24,11 @@ export const centralControl: Observation = ctx => {
         + " control of the center";
 
     // For flank pawn control
-    if (piece.role == "pawn" && flankSquares.has(ctx.move.to))
+    if (piece.role == "pawn" && SquareSet.flank().has(ctx.move.to))
         statement += " with a flank pawn";
 
     // For distant fianchetto control
-    if (piece.role == "bishop" && fianchettoSquares.has(ctx.move.to))
+    if (piece.role == "bishop" && SquareSet.fianchetto().has(ctx.move.to))
         statement += " from a distance";
 
     return `${statement}.`;

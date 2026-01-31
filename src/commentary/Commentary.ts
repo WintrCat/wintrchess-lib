@@ -6,11 +6,12 @@ import {
     getEvaluation,
     getWinPercentLoss
 } from "@/engine";
-import { AnalysedMove } from "@/types";
+import { getAttackMoves } from "@/utils";
 import { CommentaryOptions } from "./types/CommentaryOptions";
 import {
     AssessmentContext,
-    AssessmentContextResult
+    AssessmentContextResult,
+    AssessmentMoveContext
 } from "./types/assessment/context";
 import {
     AssessmentOptions,
@@ -43,41 +44,45 @@ export class Commentary {
         this.engine.setPosition(opts.position);
         const lines = await this.engine.evaluate(opts.evaluations);
 
-        // Calculate last context for dependent move data
-        let analysedMove: AnalysedMove | undefined;
-
-        if (opts.move) {
-            lastContext ??= (await this.getAssessmentContext({
-                evaluations: opts.evaluations,
-                position: opts.move.lastPosition
-            })).current;
-
-            const lastEvaluation = getEvaluation(lastContext.engineLines);
-            const evaluation = getEvaluation(lines);
-            if (!lastEvaluation || !evaluation)
-                throw new Error("engine produced invalid or no lines.");
-
-            const loss = [
-                lastEvaluation,
-                evaluation,
-                opts.move.lastPosition.turn
-            ] as const;
-
-            analysedMove = {
-                ...opts.move,
-                winPercentLoss: getWinPercentLoss(...loss),
-                centipawnLoss: getCentipawnLoss(...loss)
-            };
-        }
-
-        return {
+        // Setup a contexts result
+        const contexts: AssessmentContextResult = {
             current: {
                 position: opts.position,
-                engineLines: lines,
-                move: analysedMove
+                engineLines: lines
             },
             last: opts.move && lastContext
         };
+
+        // Get move context, maybe requiring calculation of last context
+        if (!opts.move) return contexts;
+
+        contexts.last ??= (await this.getAssessmentContext({
+            evaluations: opts.evaluations,
+            position: opts.move.lastPosition
+        })).current;
+
+        const lastEvaluation = getEvaluation(contexts.last.engineLines);
+        const evaluation = getEvaluation(lines);
+        if (!lastEvaluation || !evaluation)
+            throw new Error("engine produced invalid or no lines.");
+
+        const lossArgs = [
+            lastEvaluation,
+            evaluation,
+            opts.move.lastPosition.turn
+        ] as const;
+
+        contexts.current.move = {
+            ...opts.move,
+            winPercentLoss: getWinPercentLoss(...lossArgs),
+            centipawnLoss: getCentipawnLoss(...lossArgs),
+            lastAttackMoves: getAttackMoves(
+                opts.move.lastPosition, opts.move.from
+            ),
+            attackMoves: getAttackMoves(opts.position, opts.move.to)
+        };
+
+        return contexts;
     }
 
     /**

@@ -1,13 +1,20 @@
 import { Chess } from "chessops";
 
-import { AnalysedMove } from "@/types";
+import { AnalysedMove, ContextualCapture } from "@/types";
 import { EngineLine } from "@/engine";
+
+export type AssessmentMoveContext = AnalysedMove & {
+    /** Capturing moves the moved piece can now make. */
+    attackMoves: ContextualCapture[];
+    /** Capturing moves the piece could have made before `move`. */
+    lastAttackMoves: ContextualCapture[];
+};
 
 export interface AssessmentContext {
     /** The position being explored. */
     position: Chess;
     /** The move that was just played in `position`. */
-    move?: AnalysedMove;
+    move?: AssessmentMoveContext;
     /** The engine's analysis of `position`. */
     engineLines: EngineLine[];
     /** Openings database results for `position`. */

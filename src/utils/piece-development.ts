@@ -1,8 +1,6 @@
-import { SquareSet } from "chessops";
-
 import { ContextualMove } from "@/types";
+import { SquareSet } from "./square-sets";
 import { getGameStage } from "./game-stage";
-import { pawnRanks } from "./square-sets";
 
 /**
  * Returns whether the move puts a piece off of its starting square
@@ -14,7 +12,7 @@ export function isDevelopingMove(move: ContextualMove, excludePawns = true) {
     const fromStarting = SquareSet.backranks().has(move.from) || (
         !excludePawns
         && move.piece.role == "pawn"
-        && pawnRanks.has(move.from)
+        && SquareSet.pawnRanks().has(move.from)
     );
 
     const gameStage = getGameStage(move.lastPosition.board);
