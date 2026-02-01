@@ -9,7 +9,7 @@ export const pieceDevelopment: Observation = ctx => {
     if (isDevelopingMove(ctx.move)) {
         const edgeKnightStatement = SquareSet.edgeFiles().has(ctx.move.to)
             && ctx.move.piece.role == "knight"
-            && " to the edge of the board";
+            && " to the edge of the board, where it could be less active";
 
         const activityStatement = (
             ctx.move.attackMoves.length
