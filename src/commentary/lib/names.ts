@@ -9,6 +9,6 @@ export function squareLabel(square: Square) {
 
 /** Parseable string for pieces */
 export function pieceLabel(piece: LocatedPiece, includeSquare = false) {
-    const header = includeSquare ? "full" : "piece";
-    return `{{${header} ${makeSquare(piece.square)}}}`;
+    const suffix = includeSquare ? " full" : "";
+    return `{{${piece.role} ${makeSquare(piece.square)}${suffix}}}`;
 }

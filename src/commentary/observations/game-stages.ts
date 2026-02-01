@@ -1,26 +1,21 @@
-import { Chess } from "chessops";
-import { boardEquals } from "chessops/board";
+import { Board, boardEquals } from "chessops/board";
 
-import { GAME_STAGES, GameStage, getGameStage } from "@/utils";
+import { GAME_STAGES, GameStage } from "@/utils";
 import { Observation } from "../types/assessment/observation";
 
 function stageIndex(stage: GameStage) {
     return GAME_STAGES.indexOf(stage);
 }
 
-export const gameStages: Observation = ctx => {
-    if (!ctx.move) return null;
-
+export const gameStages: Observation = (ctx, lastCtx) => {
+    if (!lastCtx) return null;
     const statements: string[] = [];
 
-    if (boardEquals(ctx.move.lastPosition.board, Chess.default().board))
+    if (boardEquals(lastCtx.position.board, Board.default()))
         statements.push("This move begins the game.");
 
-    const stage = getGameStage(ctx.position.board);
-    const lastStage = getGameStage(ctx.move.lastPosition.board);
-
-    if (stageIndex(stage) > stageIndex(lastStage))
-        statements.push(`This move starts the ${stage}.`);
+    if (stageIndex(ctx.stage) > stageIndex(lastCtx.stage))
+        statements.push(`This move starts the ${ctx.stage}.`);
 
     return statements;
 };

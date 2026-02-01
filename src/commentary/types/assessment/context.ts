@@ -2,6 +2,7 @@ import { Chess } from "chessops";
 
 import { AnalysedMove, ContextualCapture } from "@/types";
 import { EngineLine } from "@/engine";
+import { GameStage } from "@/utils";
 
 export type AssessmentMoveContext = AnalysedMove & {
     /** Capturing moves the moved piece can now make. */
@@ -19,6 +20,8 @@ export interface AssessmentContext {
     engineLines: EngineLine[];
     /** Openings database results for `position`. */
     database?: {}
+    /** The stage of the game that this position is in. */
+    stage: GameStage;
 }
 
 export interface AssessmentContextResult {

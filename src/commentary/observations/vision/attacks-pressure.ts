@@ -11,7 +11,6 @@ import { Observation, pieceLabel } from "@/commentary";
 
 export const attacksPressure: Observation = ctx => {
     if (!ctx.move) return null;
-
     const statements: string[] = [];
 
     // Attacks that the moved piece makes that it didn't last move

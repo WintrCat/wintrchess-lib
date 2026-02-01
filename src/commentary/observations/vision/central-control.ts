@@ -1,7 +1,7 @@
 import { attacks } from "chessops";
 
 import { Observation } from "@/commentary";
-import { getGameStage, isDevelopingMove, SquareSet } from "@/utils";
+import { isDevelopingMove, SquareSet } from "@/utils";
 
 export const centralControl: Observation = ctx => {
     if (!ctx.move) return null;
@@ -10,15 +10,13 @@ export const centralControl: Observation = ctx => {
     const piece = ctx.move.piece;
 
     // If it's the opening and a move controls the center
-    const openingStage = getGameStage(ctx.position.board) == "opening";
-
     const seesCenter = attacks(
         ctx.move.piece,
         ctx.move.to,
         ctx.position.board.occupied
     ).intersect(SquareSet.center()).nonEmpty();
 
-    if (!seesCenter || !openingStage) return null;
+    if (!seesCenter || ctx.stage != "opening") return null;
 
     let statement = `This move adds to ${ctx.move.piece.color}'s`
         + " control of the center";

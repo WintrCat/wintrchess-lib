@@ -6,12 +6,11 @@ import {
     getEvaluation,
     getWinPercentLoss
 } from "@/engine";
-import { getAttackMoves } from "@/utils";
+import { getAttackMoves, getGameStage } from "@/utils";
 import { CommentaryOptions } from "./types/CommentaryOptions";
 import {
     AssessmentContext,
-    AssessmentContextResult,
-    AssessmentMoveContext
+    AssessmentContextResult
 } from "./types/assessment/context";
 import {
     AssessmentOptions,
@@ -48,7 +47,8 @@ export class Commentary {
         const contexts: AssessmentContextResult = {
             current: {
                 position: opts.position,
-                engineLines: lines
+                engineLines: lines,
+                stage: getGameStage(opts.position.board)
             },
             last: opts.move && lastContext
         };
