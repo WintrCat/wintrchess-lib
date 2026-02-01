@@ -1,5 +1,5 @@
 import { LocatedPiece } from "@/types";
-import { isDevelopingMove, isUndevelopingMove } from "@/utils";
+import { isDevelopingMove, isUndevelopingMove, SquareSet } from "@/utils";
 import { Observation } from "../types/assessment/observation";
 import { pieceLabel } from "../lib/names";
 
@@ -7,6 +7,10 @@ export const pieceDevelopment: Observation = ctx => {
     if (!ctx.move) return null;
     
     if (isDevelopingMove(ctx.move)) {
+        const edgeKnightStatement = SquareSet.edgeFiles().has(ctx.move.to)
+            && ctx.move.piece.role == "knight"
+            && " to the edge of the board";
+
         const activityStatement = (
             ctx.move.attackMoves.length
             > ctx.move.lastAttackMoves.length
@@ -18,7 +22,7 @@ export const pieceDevelopment: Observation = ctx => {
 
         return (
             `This move develops a ${pieceLabel(locatedPiece)}`
-            + `${activityStatement}.`
+            + `${edgeKnightStatement || activityStatement}.`
         );
     }
 
