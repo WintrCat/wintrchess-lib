@@ -22,7 +22,8 @@ export default defineConfig({
                 "chessops/util",
                 "chessops/board",
                 "openai",
-                "child_process"
+                "child_process",
+                "chalk"
             ]
         },
         emptyOutDir: true

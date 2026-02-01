@@ -13,6 +13,8 @@ export interface AssessmentOptions {
     observations?: Observation[];
     /** Options for engine analysis. */
     evaluations?: EvaluateOptions;
+    /** Whether to report progress updates via `console.log`. */
+    logs?: boolean;
 };
 
 export interface RecursiveAssessmentOptions extends AssessmentOptions {

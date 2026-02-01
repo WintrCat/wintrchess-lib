@@ -1,4 +1,5 @@
 import { OpenAI } from "openai";
+import { makeFen } from "chessops/fen";
 
 import {
     Engine,
@@ -18,6 +19,7 @@ import {
 } from "./types/assessment/options";
 import { AssessmentNode } from "./types/assessment/node";
 import { ExplanationOptions } from "./types/ExplanationOptions";
+import { log } from "./lib/logging";
 import { buildPrompt } from "./lib/prompt";
 import { DEFAULT_OBSERVATIONS } from "./observations";
 
@@ -96,24 +98,32 @@ export class Commentary {
             parentNode?: AssessmentNode;
         }
     ): Promise<AssessmentNode> {
+        const startTime = performance.now();
+
+        const fen = makeFen(opts.position.toSetup());
+        log("info", `assessing ${fen}`);
+
         const contexts = await this.getAssessmentContext(
             opts, nodeOpts?.parentNode?.context
         );
 
-        const observations = opts.observations || DEFAULT_OBSERVATIONS;
-        const statements: string[] = [];
+        log("success", "generated current context"
+            + (nodeOpts?.parentNode?.context ? "" : " and last context.")
+        );
 
-        for (const observation of observations) {
-            const result = await observation(
-                contexts.current, contexts.last
+        const observations = opts.observations || DEFAULT_OBSERVATIONS;
+        const results = observations.map(async (obs, index, { length }) => {
+            const result = await obs(contexts.current, contexts.last);
+
+            if (opts.logs) log("success",
+                `executed ${++index} of ${length} observations.`
             );
 
-            if (Array.isArray(result)) {
-                statements.push(...result);
-            } else if (result) {
-                statements.push(result);
-            }
-        }
+            return result;
+        });
+
+        const statements = (await Promise.all(results))
+            .filter(res => res != null).flat();
 
         const node: AssessmentNode = {
             parent: nodeOpts?.parentNode,
@@ -129,6 +139,9 @@ export class Commentary {
             context: contexts.last,
             statements: []
         };
+        
+        const elapsed = (performance.now() - startTime) / 1000;
+        log("success", `assessement complete (${elapsed.toFixed(3)}s)`);
 
         return node;
     }
