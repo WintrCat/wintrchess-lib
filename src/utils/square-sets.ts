@@ -34,6 +34,15 @@ export class SquareSet extends NativeSquareSet {
         );
     }
 
+    /** Central squares; `d5`, `e5` for white. `d4`, `e4` for black. */
+    static center(colour?: Color) {
+        return colouredSet(
+            NativeSquareSet.center().intersect(SquareSet.fromRank(4)),
+            NativeSquareSet.center().intersect(SquareSet.fromRank(3)),
+            colour
+        );
+    }
+
     /** Fianchetto squares: `b2`, `g2`, `b7`, `g7`. */
     static fianchetto(colour?: Color) {
         return colouredSet(

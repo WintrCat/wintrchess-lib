@@ -14,8 +14,8 @@ export const centralControl: Observation = ctx => {
         ctx.move.piece,
         ctx.move.to,
         ctx.position.board.occupied
-    ).intersect(SquareSet.center()).nonEmpty();
-
+    ).intersect(SquareSet.center(piece.color)).nonEmpty();
+    
     if (!seesCenter || ctx.stage != "opening") return null;
 
     let statement = `This move adds to ${ctx.move.piece.color}'s`

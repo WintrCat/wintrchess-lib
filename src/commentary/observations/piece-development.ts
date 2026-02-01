@@ -5,6 +5,13 @@ import { isDevelopingMove, isUndevelopingMove, SquareSet } from "@/utils";
 import { Observation } from "../types/assessment/observation";
 import { pieceLabel } from "../lib/names";
 
+const knightStarts: Record<Square, Square> = {
+    [parseSquare("c3")]: parseSquare("b1"),
+    [parseSquare("f3")]: parseSquare("g1"),
+    [parseSquare("c6")]: parseSquare("b8"),
+    [parseSquare("f6")]: parseSquare("g8")
+};
+
 const fianchettoPreparations = SquareSet.empty()
     .with(parseSquare("b3"))
     .with(parseSquare("g3"))
@@ -21,6 +28,17 @@ const fianchettoBishops: Record<Square, Square> = {
 export const pieceDevelopment: Observation = ctx => {
     if (!ctx.move) return null;
     const statements: string[] = [];
+
+    // Pawn moves that block natural development of knights
+    const knightStartSquare = knightStarts[ctx.move.to];
+    if (
+        ctx.stage == "opening"
+        && ctx.move.piece.role == "pawn"
+        && knightStartSquare
+        && ctx.position.board.getRole(knightStartSquare) == "knight"
+    ) statements.push(
+        "This move blocks the natural development of the knight."
+    );
 
     // Pawn moves that prepare a bishop for fianchetto
     const fctbSquare = fianchettoBishops[ctx.move.to];
