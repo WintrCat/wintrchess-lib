@@ -99,9 +99,7 @@ export class Commentary {
         }
     ): Promise<AssessmentNode> {
         const startTime = performance.now();
-
-        const fen = makeFen(opts.position.toSetup());
-        log("info", `assessing ${fen}`);
+        log("info", `assessing ${makeFen(opts.position.toSetup())}`);
 
         const contexts = await this.getAssessmentContext(
             opts, nodeOpts?.parentNode?.context
@@ -112,11 +110,12 @@ export class Commentary {
         );
 
         const observations = opts.observations || DEFAULT_OBSERVATIONS;
-        const results = observations.map(async (obs, index, { length }) => {
+        const results = observations.map(async (obs, index) => {
             const result = await obs(contexts.current, contexts.last);
 
             if (opts.logs) log("success",
-                `executed ${++index} of ${length} observations.`
+                `executed ${++index} of ${observations.length} `
+                + `observations: ${JSON.stringify(result)}`
             );
 
             return result;
