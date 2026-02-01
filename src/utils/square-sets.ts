@@ -1,4 +1,4 @@
-import { Color, parseSquare, SquareSet as NativeSquareSet } from "chessops";
+import { SquareSet as NativeSquareSet, Color, parseSquare } from "chessops";
 
 function colouredSet(white: SquareSet, black: SquareSet, chosen?: Color) {
     if (!chosen) return white.union(black);
