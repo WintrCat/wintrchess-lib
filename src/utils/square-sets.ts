@@ -58,4 +58,11 @@ export class SquareSet extends NativeSquareSet {
             SquareSet.backranks().union(SquareSet.pawnRanks())
         );
     }
+
+    /** All the squares of a given side in the starting position. */
+    static army(colour?: Color) {
+        return colour
+            ? SquareSet.backrank(colour).union(SquareSet.pawnRanks(colour))
+            : SquareSet.full().xor(SquareSet.mainland());
+    }
 }

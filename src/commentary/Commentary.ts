@@ -99,13 +99,15 @@ export class Commentary {
         }
     ): Promise<AssessmentNode> {
         const startTime = performance.now();
-        log("info", `assessing ${makeFen(opts.position.toSetup())}`);
+        if (opts.logs) log("info",
+            `assessing ${makeFen(opts.position.toSetup())}`
+        );
 
         const contexts = await this.getAssessmentContext(
             opts, nodeOpts?.parentNode?.context
         );
 
-        log("success", "generated current context"
+        if (opts.logs) log("success", "generated current context"
             + (nodeOpts?.parentNode?.context ? "" : " and last context.")
         );
 
@@ -140,7 +142,9 @@ export class Commentary {
         };
         
         const elapsed = (performance.now() - startTime) / 1000;
-        log("success", `assessement complete (${elapsed.toFixed(3)}s)`);
+        if (opts.logs) log("success",
+            `assessement complete (${elapsed.toFixed(3)}s)`
+        );
 
         return node;
     }

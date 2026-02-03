@@ -5,20 +5,30 @@ import { isDevelopingMove, SquareSet } from "@/utils";
 
 export const centralControl: Observation = ctx => {
     if (!ctx.move) return null;
-    if (!isDevelopingMove(ctx.move, false)) return null;
-
+    if (!isDevelopingMove(ctx.move, true)) return null;
     const piece = ctx.move.piece;
 
-    // If it's the opening and a move controls the center
-    const seesCenter = attacks(
-        ctx.move.piece,
+    const visibleSquares = attacks(
+        piece,
         ctx.move.to,
         ctx.position.board.occupied
-    ).intersect(SquareSet.center(piece.color)).nonEmpty();
-    
-    if (!seesCenter || ctx.stage != "opening") return null;
+    );
 
-    let statement = `This move adds to ${ctx.move.piece.color}'s`
+    const seesCenter = visibleSquares
+        .intersect(SquareSet.center(piece.color))
+        .nonEmpty();
+
+    // If the move does not fight for the center
+    const influencesNothing = visibleSquares
+        .intersect(ctx.position.board.occupied)
+        .isEmpty();
+    
+    if (!seesCenter) return influencesNothing
+        ? "This move does not fight for the center."
+        : null;
+
+    // If the move fights for the center
+    let statement = `This move adds to ${piece.color}'s`
         + " control of the center";
 
     // For flank pawn control

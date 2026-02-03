@@ -6,18 +6,14 @@ import { getGameStage } from "./game-stage";
  * Returns whether the move puts a piece off of its starting square
  * during the opening stage of the game.
  */
-export function isDevelopingMove(move: ContextualMove, excludePawns = true) {
+export function isDevelopingMove(move: ContextualMove, includePawns = false) {
     if (move.piece.role == "king") return false;
+    if (!includePawns && move.piece.role == "pawn") return false;
 
-    const fromStarting = SquareSet.backranks().has(move.from) || (
-        !excludePawns
-        && move.piece.role == "pawn"
-        && SquareSet.pawnRanks().has(move.from)
-    );
-
+    const fromHome = SquareSet.army(move.piece.color).has(move.from);
     const gameStage = getGameStage(move.lastPosition.board);
 
-    return fromStarting && gameStage == "opening";
+    return fromHome && gameStage == "opening";
 }
 
 /**
