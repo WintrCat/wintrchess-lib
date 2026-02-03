@@ -6,6 +6,11 @@ function colouredSet(white: SquareSet, black: SquareSet, chosen?: Color) {
 }
 
 export class SquareSet extends NativeSquareSet {
+    /** Get a rank from the orientation of a given side. */
+    static fromRank(rank: number, colour: Color = "white") {
+        return NativeSquareSet.fromRank(colour == "white" ? rank : 7 - rank);
+    }
+
     /** The 2nd and 7th ranks. */
     static pawnRanks(colour?: Color) {
         return colouredSet(

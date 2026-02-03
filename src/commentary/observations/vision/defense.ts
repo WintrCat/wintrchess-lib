@@ -1,17 +1,27 @@
 import { attacks } from "chessops";
 
 import { Observation, pieceLabel } from "@/commentary";
-import { isHanging } from "@/utils";
+import { isHanging, SquareSet } from "@/utils";
 
 export const defense: Observation = ({ move, position }) => {
     if (!move) return null;
+    const statements: string[] = [];
 
     const visibleAllies = attacks(
         move.piece, move.to, position.board.occupied
     ).intersect(position.board[move.piece.color]);
 
-    const defendedAllies: string[] = [];
+    // Pawn moves that solidify the structure
+    if (
+        move.piece.role == "pawn"
+        && SquareSet.fromRank(2, move.piece.color).has(move.to)
+        && visibleAllies.size() > 0
+    ) statements.push(
+        `This move solidifies ${move.piece.color}'s structure.`
+    );
 
+    // Pieces that are defended (no longer hanging) through this move
+    const defendedAllies: string[] = [];
     for (const allySquare of visibleAllies) {
         const ally = position.board.get(allySquare);
         if (!ally) continue;
@@ -24,7 +34,9 @@ export const defense: Observation = ({ move, position }) => {
         );
     }
 
-    return defendedAllies.length > 0
-        ? `This move defends the: ${defendedAllies.join(", ")}.`
-        : null;
+    if (defendedAllies.length > 0) statements.push(
+        `This move defends the: ${defendedAllies.join(", ")}.`
+    );
+
+    return statements;
 };
