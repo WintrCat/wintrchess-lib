@@ -4,6 +4,7 @@ import { attacksPressure } from "./vision/attacks-pressure";
 import { centralControl } from "./vision/central-control";
 import { castling } from "./vision/castling";
 import { defense } from "./vision/defense";
+import { pawnBreaks } from "./vision/pawn-breaks";
 import { pins } from "./vision/pins";
 import { scope } from "./vision/scope";
 
@@ -17,6 +18,7 @@ export const DEFAULT_OBSERVATIONS: Observation[] = [
     centralControl,
     castling,
     defense,
+    pawnBreaks,
     pins,
     scope,
 
