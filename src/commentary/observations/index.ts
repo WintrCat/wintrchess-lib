@@ -9,8 +9,10 @@ import { scope } from "./vision/scope";
 
 import { gameStages } from "./game-stages";
 import { pieceDevelopment } from "./piece-development";
+import { earlyQueen } from "./early-queen";
 
 export const DEFAULT_OBSERVATIONS: Observation[] = [
+    // Vision
     attacksPressure,
     centralControl,
     castling,
@@ -18,6 +20,8 @@ export const DEFAULT_OBSERVATIONS: Observation[] = [
     pins,
     scope,
 
+    // Generic
     gameStages,
-    pieceDevelopment
+    pieceDevelopment,
+    earlyQueen
 ];
