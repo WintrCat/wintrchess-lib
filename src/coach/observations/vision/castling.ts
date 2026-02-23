@@ -1,6 +1,6 @@
 import { Chess, opposite, Square } from "chessops";
 
-import { Observation } from "@/commentary";
+import { Observation } from "@/coach";
 
 function canCastle(position: Chess, king: Square) {
     return position.dests(king)

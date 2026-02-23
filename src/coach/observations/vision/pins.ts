@@ -1,7 +1,7 @@
 import { between, Role } from "chessops";
 import { differenceWith } from "es-toolkit";
 
-import { Observation, pieceLabel } from "@/commentary";
+import { Observation, pieceLabel } from "@/coach";
 import { evaluateExchange, getAttackMoves } from "@/utils";
 
 // Piece types that cannot pin another piece

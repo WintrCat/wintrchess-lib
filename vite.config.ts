@@ -7,7 +7,7 @@ export default defineConfig({
         lib: {
             entry: {
                 engine: "./src/engine/index.ts",
-                commentary: "./src/commentary/index.ts",
+                coach: "./src/coach/index.ts",
                 classify: "./src/classify/index.ts",
                 utils: "./src/utils/index.ts",
                 types: "./src/types/index.ts"

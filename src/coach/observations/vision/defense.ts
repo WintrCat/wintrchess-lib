@@ -1,6 +1,6 @@
 import { attacks } from "chessops";
 
-import { Observation, pieceLabel } from "@/commentary";
+import { Observation, pieceLabel } from "@/coach";
 import { isHanging, SquareSet } from "@/utils";
 
 export const defense: Observation = ({ move, position }) => {

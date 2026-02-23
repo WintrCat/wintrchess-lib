@@ -1,6 +1,6 @@
 import { bishopAttacks, kingAttacks, opposite } from "chessops";
 
-import { Observation } from "@/commentary";
+import { Observation } from "@/coach";
 import { SquareSet } from "@/utils";
 
 /**

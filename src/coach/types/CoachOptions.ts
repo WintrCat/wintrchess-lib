@@ -2,7 +2,7 @@ import { ClientOptions } from "openai";
 
 import { Engine } from "@/engine";
 
-export interface CommentaryOptions {
+export interface CoachOptions {
     /** Chess engine adapter with which to evaluate positions. */
     engine: Engine;
     /** Options for an openings database to aid analysis. */

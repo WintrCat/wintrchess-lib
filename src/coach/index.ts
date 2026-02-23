@@ -1,6 +1,6 @@
-export * from "./Commentary";
+export * from "./Coach";
 
-export * from "./types/CommentaryOptions";
+export * from "./types/CoachOptions";
 export * from "./types/ExplanationOptions";
 export * from "./types/assessment/context";
 export * from "./types/assessment/node";

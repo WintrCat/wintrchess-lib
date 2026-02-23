@@ -1,6 +1,6 @@
 import { attacks, Board, Color, parseSquare, ray } from "chessops";
 
-import { Observation, pieceLabel } from "@/commentary";
+import { Observation, pieceLabel } from "@/coach";
 import { SquareSet } from "@/utils";
 
 function kingLine(colour: Color) {

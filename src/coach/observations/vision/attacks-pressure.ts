@@ -7,7 +7,7 @@ import {
     SquareSet,
     PIECE_VALUES
 } from "@/utils";
-import { Observation, pieceLabel } from "@/commentary";
+import { Observation, pieceLabel } from "@/coach";
 
 export const attacksPressure: Observation = ctx => {
     if (!ctx.move) return null;

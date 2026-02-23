@@ -1,6 +1,6 @@
 import { attacks } from "chessops";
 
-import { Observation } from "@/commentary";
+import { Observation } from "@/coach";
 import { isDevelopingMove, SquareSet } from "@/utils";
 
 export const centralControl: Observation = ctx => {

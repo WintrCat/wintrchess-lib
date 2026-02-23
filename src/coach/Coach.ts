@@ -8,7 +8,7 @@ import {
     getWinPercentLoss
 } from "@/engine";
 import { getAttackMoves, getGameStage } from "@/utils";
-import { CommentaryOptions } from "./types/CommentaryOptions";
+import { CoachOptions } from "./types/CoachOptions";
 import {
     AssessmentContext,
     AssessmentContextResult
@@ -23,11 +23,11 @@ import { log } from "./lib/logging";
 import { buildPrompt } from "./lib/prompt";
 import { DEFAULT_OBSERVATIONS } from "./observations";
 
-export class Commentary {
+export class Coach {
     engine: Engine;
     llm: OpenAI;
 
-    constructor(opts: CommentaryOptions) {
+    constructor(opts: CoachOptions) {
         this.engine = opts.engine;
         this.llm = new OpenAI(opts.llm);
     }
