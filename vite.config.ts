@@ -7,12 +7,14 @@ export default defineConfig({
         lib: {
             entry: {
                 engine: "./src/engine/index.ts",
+                nodeEngine: "./src/engine/ProcessEngine.ts",
+                
                 coach: "./src/coach/index.ts",
                 classify: "./src/classify/index.ts",
                 utils: "./src/utils/index.ts",
                 types: "./src/types/index.ts"
             },
-            formats: ["cjs", "es"]
+            formats: ["es"]
         },
         rollupOptions: {
             external: [
