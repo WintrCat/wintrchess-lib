@@ -51,12 +51,9 @@ export function buildMoveTitle(node: AssessmentNode) {
     if (node.isSource)
         return `${colour} has just played ${san} in this position:`;
 
-    const sanChain = getAssessmentNodeChain(node)
-        .filter(node => node.context.move)
-        .map(node => makeSan(
-            node.context.move!.lastPosition,
-            node.context.move!
-        ));
+    const sanChain = getAssessmentNodeChain(node, true).map(node => (
+        makeSan(node.context.move!.lastPosition, node.context.move!)
+    ));
 
     if (sanChain.length == 1)
         return `${colour} could have instead played ${sanChain[0]}:`;

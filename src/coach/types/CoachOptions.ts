@@ -7,6 +7,6 @@ export interface CoachOptions {
     engine: Engine;
     /** Options for an openings database to aid analysis. */
     database?: {}
-    /** Options for OpenAI API client for LLM that produces commentary. */
+    /** Options for OpenAI API client for LLM that produces explanations. */
     llm?: ClientOptions;
 }

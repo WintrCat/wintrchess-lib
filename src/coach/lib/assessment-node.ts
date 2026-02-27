@@ -31,8 +31,3 @@ export function getAssessmentNodeChain(
 
     return nodes;
 }
-
-/** Returns a node's depth from its root. */
-export function getAssessmentNodeDepth(node: AssessmentNode) {
-    return getAssessmentNodeChain(node).length - 1;
-}
