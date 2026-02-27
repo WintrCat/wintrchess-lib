@@ -43,7 +43,8 @@
 	},
 	"dependencies": {
 		"chalk": "^5.6.2",
-		"chessops": "^0.15.0"
+		"chessops": "^0.15.0",
+		"@openrouter/sdk": "^0.9.11"
 	},
 	"peerDependencies": {
 		"openai": "^6.17.0"

@@ -1,38 +1,28 @@
 import { makeSan } from "chessops/san";
+import { capitalize } from "es-toolkit";
 
 import { PromptOptions } from "../types/ExplanationOptions";
 import { AssessmentNode } from "../types/assessment/node";
-import {
-    getAssessmentNodeChain,
-    getAssessmentNodeDepth
-} from "./assessment-node";
+import { getAssessmentNodeChain } from "./assessment-node";
 
 const promptTemplate = `
-    Below, I have provided several sections describing chess moves or move
-    sequences. All sections begin from the same root position. The title of
-    each section is the exact move or move sequence being described. The
-    bullet points beneath each title contain the only information available
-    about that move or the position it results in. Exactly one section
-    corresponds to the primary continuation. You must not explicitly state
-    that it was the move played, but you must begin your explanation by
-    explaining that section first. Each section is marked as either a
-    response, alternative, or the primary continuation. Explain each of them
-    afterwards, using only the information given. If the primary continuation
-    is titled "no move" then you must skip explaining that section. If there
-    are no other sections, you MUST NOT mention at all that this is the case;
-    simply do not mention them. You MUST NOT introduce any new chess facts,
-    evaluations, motivations, or consequences beyond what is explicitly stated
-    in the bullet points. Do not infer additional theory, tactics, or ideas.
-    Speak in third person, referring to moves as "this move" for example. The
-    response must be a single explanation, with no formatting, headings, or
-    bullet points, and nothing besides the explanation itself should be
-    included in the response. Anything enclosed in double curly braces should
-    remain in exactly the same format in the final response. Stylistic
-    expressiveness (such as emojis, interjections, or tone markers) is
-    permitted if it is natural to the specified personality.
+    You are currently looking at a Chess position. Below, I have provided
+    several sections describing the position. I also may have included
+    information on the move that has just been played, any alternatives to
+    that move, and any responses to any of those moves. Different moves are
+    explained in different sections. Compile this information into a coherent
+    paragraph, or set of paragraphs for each section. Do NOT include any
+    formatting at all in your response besides necessary whitespace. Leave any
+    parts enclosed in double curly braces AS IS in the response, as these need
+    to be parsed later. Do NOT introduce any new Chess facts, evaluations or
+    consequences that cannot be explicitly derived from the provided
+    information. Do NOT include anything in your response except for the
+    compilation of the sections. You do not need to mention that the move
+    that has just been played in this position has been played; this is
+    already contextually established.
 `;
 
-/** Builds only the introductory brief for a commentary prompt. */
+/** Builds only the introductory brief for a coach prompt. */
 export function buildPromptTemplate(opts?: PromptOptions) {
     let prompt = promptTemplate
         .replace(/ {2,}/g, "")
@@ -50,22 +40,32 @@ export function buildPromptTemplate(opts?: PromptOptions) {
     return prompt + "\n\n";
 }
 
-/** Build the metadata tags for a move section in a commentary prompt. */
-export function buildMoveMetadata(node: AssessmentNode) {
-    const metatags: string[] = [];
+/** Build the title for a move section in a coach prompt. */
+export function buildMoveTitle(node: AssessmentNode) {
+    const move = node.context.move;
+    if (!move) return "No move, this only describes the position:";
 
-    const moveColour = node.context.move?.lastPosition.turn;
-    if (moveColour) metatags.push(moveColour);
+    const colour = capitalize(move.piece.color);
+    const san = makeSan(move.lastPosition, move);
 
-    metatags.push(getAssessmentNodeDepth(node) <= 1
-        ? (node.isSource ? "primary continuation" : "alternative")
-        : "response"
-    );
+    if (node.isSource)
+        return `${colour} has just played ${san} in this position:`;
 
-    return metatags.map(tag => `(${tag})`).join(" ");
+    const sanChain = getAssessmentNodeChain(node)
+        .filter(node => node.context.move)
+        .map(node => makeSan(
+            node.context.move!.lastPosition,
+            node.context.move!
+        ));
+
+    if (sanChain.length == 1)
+        return `${colour} could have instead played ${sanChain[0]}:`;
+
+    return `After ${sanChain.slice(0, -1).join(", ")}, `
+        + `${colour} can play ${sanChain.at(-1)}`;
 }
 
-/** Given an assessment, builds a commentary prompt for an LLM. */
+/** Given an assessment, builds a coach prompt for an LLM. */
 export function buildPrompt(
     rootNode: AssessmentNode,
     opts?: PromptOptions
@@ -73,25 +73,14 @@ export function buildPrompt(
     let prompt = buildPromptTemplate(opts);
 
     const buildNode = (node: AssessmentNode) => {
-        const nodeChain = getAssessmentNodeChain(node);
-
-        const moves = (nodeChain
-            .filter(node => node.context.move)
-            .map(node => {
-                const move = node.context.move!;
-                return makeSan(move.lastPosition, move);
-            })
-            .join(" ")
-        ) || "no move";
-
-        const movesMetadata = buildMoveMetadata(node);
+        const moveTitle = buildMoveTitle(node);
 
         const statements = (node.statements
             .map(statement => `- ${statement}`)
             .join("\n")
         ) || "- No statements";
 
-        prompt += `${moves} ${movesMetadata}\n${statements}\n\n`;
+        prompt += `${moveTitle}\n${statements}\n\n`;
 
         for (const child of node.children) {
             buildNode(child);

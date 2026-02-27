@@ -1,4 +1,4 @@
-import { ResponsesModel } from "openai/resources";
+import { ModelId } from "@openrouter/sdk/types";
 
 export interface PromptOptions {
     /** The personality of the explanation. e.g. Peter Griffin */
@@ -9,7 +9,7 @@ export interface PromptOptions {
 
 export interface ExplanationOptions extends PromptOptions {
     /** The language model to be used. */
-    model: ResponsesModel;
+    model: (string & {}) | ModelId;
     /** The temperature option for the LLM. */
     temperature?: number;
 }

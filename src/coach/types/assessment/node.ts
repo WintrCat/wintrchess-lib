@@ -1,11 +1,15 @@
 import { AssessmentContext } from "./context";
 
+/** A position in the tree of positions explored by an assessment. */
 export interface AssessmentNode {
     /** The assessment for the previous position. */
     parent?: AssessmentNode;
     /** The assessments for any next positions. */
     children: AssessmentNode[];
-    /** If this node contains the move of the primary continuation. */
+    /**
+     * If this node represents the position initially passed for the
+     * assessment.
+     */
     isSource: boolean;
 
     /** The results from executed observations. */
