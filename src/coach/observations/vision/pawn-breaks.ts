@@ -1,7 +1,7 @@
-import { bishopAttacks, kingAttacks, opposite } from "chessops";
+import { bishopAttacks, kingAttacks, opposite, SquareSet } from "chessops";
 
 import { Observation } from "@/coach";
-import { SquareSet } from "@/utils";
+import { center } from "@/utils";
 
 /**
  * A pawn break is defined as a pawn attacking another pawn that
@@ -30,7 +30,7 @@ export const pawnBreaks: Observation = ctx => {
     if (attackedGroupedPawns.length == 0) return null;
 
     const centralComment = attackedGroupedPawns.some(pawn => (
-        SquareSet.center(ctx.move?.piece.color).has(pawn.square)
+        center(ctx.move?.piece.color).has(pawn.square)
     )) ? " in the center" : "";
 
     return `This move is a pawn break${centralComment}.`;

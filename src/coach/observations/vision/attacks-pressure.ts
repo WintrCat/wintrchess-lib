@@ -4,8 +4,8 @@ import {
     getAttackers,
     getDefenders,
     isHanging,
-    SquareSet,
-    PIECE_VALUES
+    PIECE_VALUES,
+    mainland
 } from "@/utils";
 import { Observation, pieceLabel } from "@/coach";
 
@@ -45,7 +45,7 @@ export const attacksPressure: Observation = ctx => {
             } else if (attackers.length > 2) {
                 attackersComment = ` with ${attackers.length} pieces`;
             }
-        } else if (SquareSet.mainland().has(attack.to)) {
+        } else if (mainland().has(attack.to)) {
             // Not defended by a pawn or LVA <= attacked piece value
             // constitutes real pressure being applied to the piece
             const lva = minBy(

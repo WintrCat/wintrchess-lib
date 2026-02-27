@@ -1,6 +1,4 @@
-import { Board, COLORS } from "chessops";
-
-import { SquareSet } from "./square-sets";
+import { Board, COLORS, SquareSet } from "chessops";
 
 export const GAME_STAGES = ["opening", "middlegame", "endgame"] as const;
 

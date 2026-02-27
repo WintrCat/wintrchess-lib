@@ -1,7 +1,7 @@
 import { attacks } from "chessops";
 
 import { Observation } from "@/coach";
-import { isDevelopingMove, SquareSet } from "@/utils";
+import { isDevelopingMove, center, flank, fianchetto } from "@/utils";
 
 export const centralControl: Observation = ctx => {
     if (!ctx.move) return null;
@@ -15,7 +15,7 @@ export const centralControl: Observation = ctx => {
     );
 
     const seesCenter = visibleSquares
-        .intersect(SquareSet.center(piece.color))
+        .intersect(center(piece.color))
         .nonEmpty();
 
     // If the move does not fight for the center
@@ -32,11 +32,11 @@ export const centralControl: Observation = ctx => {
         + " control of the center";
 
     // For flank pawn control
-    if (piece.role == "pawn" && SquareSet.flank().has(ctx.move.to))
+    if (piece.role == "pawn" && flank().has(ctx.move.to))
         statement += " with a flank pawn";
 
     // For distant fianchetto control
-    if (piece.role == "bishop" && SquareSet.fianchetto().has(ctx.move.to))
+    if (piece.role == "bishop" && fianchetto().has(ctx.move.to))
         statement += " from a distance";
 
     return `${statement}.`;

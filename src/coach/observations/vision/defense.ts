@@ -1,7 +1,7 @@
 import { attacks } from "chessops";
 
 import { Observation, pieceLabel } from "@/coach";
-import { isHanging, SquareSet } from "@/utils";
+import { isHanging, rank } from "@/utils";
 
 export const defense: Observation = ({ move, position }) => {
     if (!move) return null;
@@ -14,7 +14,7 @@ export const defense: Observation = ({ move, position }) => {
     // Pawn moves that solidify the structure
     if (
         move.piece.role == "pawn"
-        && SquareSet.fromRank(2, move.piece.color).has(move.to)
+        && rank(2, move.piece.color).has(move.to)
         && visibleAllies.size() > 0
     ) statements.push(
         `This move solidifies ${move.piece.color}'s structure.`

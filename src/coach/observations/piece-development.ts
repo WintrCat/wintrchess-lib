@@ -1,7 +1,7 @@
-import { parseSquare, Square } from "chessops";
+import { parseSquare, Square, SquareSet } from "chessops";
 
 import { LocatedPiece } from "@/types";
-import { isDevelopingMove, isUndevelopingMove, SquareSet } from "@/utils";
+import { isDevelopingMove, isUndevelopingMove, edgeFiles } from "@/utils";
 import { Observation } from "../types/assessment/observation";
 import { pieceLabel } from "../lib/names";
 
@@ -58,7 +58,7 @@ export const pieceDevelopment: Observation = ctx => {
     
     // Moves that develop a piece
     if (isDevelopingMove(ctx.move)) {
-        const edgeKnightStatement = SquareSet.edgeFiles().has(ctx.move.to)
+        const edgeKnightStatement = edgeFiles().has(ctx.move.to)
             && ctx.move.piece.role == "knight"
             && " to the edge of the board, where it could be less active";
 

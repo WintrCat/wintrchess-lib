@@ -1,10 +1,10 @@
-import { evaluateExchange, SquareSet } from "@/utils";
+import { centralRanks, evaluateExchange } from "@/utils";
 import { Observation } from "../types/assessment/observation";
 
 export const earlyQueen: Observation = (ctx, lastCtx) => {
     if (!ctx.move || ctx.stage != "opening") return null;
     if (ctx.move.piece.role != "queen") return null;
-    if (!SquareSet.centralRanks().has(ctx.move.to)) return null;
+    if (!centralRanks().has(ctx.move.to)) return null;
 
     // Free pawns are not absolved of early queen scolding
     const freePieceTaken = lastCtx?.move?.captured

@@ -1,73 +1,62 @@
-import { SquareSet as NativeSquareSet, Color, parseSquare } from "chessops";
+import { SquareSet, Color, parseSquare } from "chessops";
 
 function colouredSet(white: SquareSet, black: SquareSet, chosen?: Color) {
     if (!chosen) return white.union(black);
     return chosen == "white" ? white : black;
 }
 
-export class SquareSet extends NativeSquareSet {
-    /** Get a rank from the orientation of a given side. */
-    static fromRank(rank: number, colour: Color = "white") {
-        return NativeSquareSet.fromRank(colour == "white" ? rank : 7 - rank);
-    }
+export function rank(rank: number, colour: Color = "white") {
+    return SquareSet.fromRank(colour == "white" ? rank : 7 - rank);
+}
 
-    /** The 2nd and 7th ranks. */
-    static pawnRanks(colour?: Color) {
-        return colouredSet(
-            SquareSet.fromRank(1),
-            SquareSet.fromRank(6),
-            colour
-        );
-    }
+export function pawnRanks(colour?: Color) {
+    return colouredSet(
+        SquareSet.fromRank(1),
+        SquareSet.fromRank(6),
+        colour
+    );
+}
 
-    /** The 4th and 5th ranks. */
-    static centralRanks() {
-        return SquareSet.fromRank(3).union(SquareSet.fromRank(4));
-    }
+export function centralRanks() {
+    return SquareSet.fromRank(3).union(SquareSet.fromRank(4));
+}
 
-    /** a-file and h-file. */
-    static edgeFiles() {
-        return SquareSet.fromFile(0).union(SquareSet.fromFile(7));
-    }
+export function edgeFiles() {
+    return SquareSet.fromFile(0).union(SquareSet.fromFile(7));
+}
 
-    /** Flank pawn squares: `c4`, `c5`, `f4`, `f5`. */
-    static flank(colour?: Color) {
-        return colouredSet(
-            SquareSet.fromSquare(parseSquare("c4")).with(parseSquare("f4")),
-            SquareSet.fromSquare(parseSquare("c5")).with(parseSquare("f5")),
-            colour
-        );
-    }
+export function flank(colour?: Color) {
+    return colouredSet(
+        SquareSet.fromSquare(parseSquare("c4")).with(parseSquare("f4")),
+        SquareSet.fromSquare(parseSquare("c5")).with(parseSquare("f5")),
+        colour
+    );
+}
 
-    /** Central squares; `d5`, `e5` for white. `d4`, `e4` for black. */
-    static center(colour?: Color) {
-        return colouredSet(
-            NativeSquareSet.center().intersect(SquareSet.fromRank(4)),
-            NativeSquareSet.center().intersect(SquareSet.fromRank(3)),
-            colour
-        );
-    }
+export function center(colour?: Color) {
+    return colouredSet(
+        SquareSet.center().intersect(SquareSet.fromRank(4)),
+        SquareSet.center().intersect(SquareSet.fromRank(3)),
+        colour
+    );
+}
 
-    /** Fianchetto squares: `b2`, `g2`, `b7`, `g7`. */
-    static fianchetto(colour?: Color) {
-        return colouredSet(
-            SquareSet.fromSquare(parseSquare("b2")).with(parseSquare("g2")),
-            SquareSet.fromSquare(parseSquare("b7")).with(parseSquare("g7")),
-            colour
-        )
-    }
+export function mainland() {
+    return SquareSet.full().xor(
+        SquareSet.backranks().union(pawnRanks())
+    );
+}
 
-    /** All the squares between the two armies at the start. */
-    static mainland() {
-        return SquareSet.full().xor(
-            SquareSet.backranks().union(SquareSet.pawnRanks())
-        );
-    }
+export function fianchetto(colour?: Color) {
+    return colouredSet(
+        SquareSet.fromSquare(parseSquare("b2")).with(parseSquare("g2")),
+        SquareSet.fromSquare(parseSquare("b7")).with(parseSquare("g7")),
+        colour
+    )
+}
 
-    /** All the squares of a given side in the starting position. */
-    static army(colour?: Color) {
-        return colour
-            ? SquareSet.backrank(colour).union(SquareSet.pawnRanks(colour))
-            : SquareSet.full().xor(SquareSet.mainland());
-    }
+export function army(colour?: Color) {
+    return colour
+        ? SquareSet.backrank(colour).union(pawnRanks(colour))
+        : SquareSet.full().xor(mainland());
 }

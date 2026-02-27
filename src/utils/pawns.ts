@@ -1,7 +1,6 @@
-import { Chess, NormalMove, opposite } from "chessops";
+import { Chess, NormalMove, opposite, SquareSet } from "chessops";
 
 import { LocatedPiece } from "@/types/LocatedPiece";
-import { SquareSet } from "./square-sets";
 
 export function isEnPassant(position: Chess, move: NormalMove) {
     return position.board.get(move.from)?.role == "pawn"

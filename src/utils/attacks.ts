@@ -3,6 +3,7 @@ import {
     NormalMove,
     Role,
     Square,
+    SquareSet,
     attacks,
     kingAttacks,
     opposite
@@ -10,7 +11,6 @@ import {
 import { minBy, uniqWith } from "es-toolkit";
 
 import { contextualizeMove, ContextualCapture, LocatedPiece } from "@/types";
-import { SquareSet } from "./square-sets";
 import { isPromotion } from "./pawns";
 
 const PROMOTABLE_ROLES: Role[] = ["knight", "bishop", "rook", "queen"];

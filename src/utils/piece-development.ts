@@ -1,6 +1,8 @@
+import { SquareSet } from "chessops";
+
 import { ContextualMove } from "@/types";
-import { SquareSet } from "./square-sets";
 import { getGameStage } from "./game-stage";
+import { army } from "./square-sets";
 
 /**
  * Returns whether the move puts a piece off of its starting square
@@ -10,7 +12,7 @@ export function isDevelopingMove(move: ContextualMove, includePawns = false) {
     if (move.piece.role == "king") return false;
     if (!includePawns && move.piece.role == "pawn") return false;
 
-    const fromHome = SquareSet.army(move.piece.color).has(move.from);
+    const fromHome = army(move.piece.color).has(move.from);
     const gameStage = getGameStage(move.lastPosition.board);
 
     return fromHome && gameStage == "opening";

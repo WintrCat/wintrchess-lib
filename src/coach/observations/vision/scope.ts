@@ -1,7 +1,6 @@
-import { attacks, Board, Color, parseSquare, ray } from "chessops";
+import { attacks, Board, Color, parseSquare, ray, SquareSet } from "chessops";
 
 import { Observation, pieceLabel } from "@/coach";
-import { SquareSet } from "@/utils";
 
 function kingLine(colour: Color) {
     const kingSquare = Board.default().kingOf(colour);
