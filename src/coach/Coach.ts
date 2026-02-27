@@ -165,6 +165,13 @@ export class Coach {
         rootNode: AssessmentNode,
         opts: ExplanationOptions
     ) {
+        if (opts.logs) log("info", [
+            "generating explanation for root node",
+            `\tposition: ${makeFen(rootNode.context.position.toSetup())}`,
+            `\tmodel: ${opts.model}`,
+            `\tpersonality: ${opts.personality}`
+        ].join("\n"));
+
         const completion = await this.llm.chat.completions.create({
             model: opts.model,
             messages: [{
@@ -175,9 +182,12 @@ export class Coach {
         });
 
         const explanation = completion.choices[0];
-        if (!explanation)
+        if (!explanation) {
+            if (opts.logs) log("error", "failed to generate explanation.");
             throw new Error("failed to generate explanation.");
+        }
 
+        if (opts.logs) log("success", "successfully generated explanation.");
         return explanation.message.content || "";
     }
 }

@@ -12,4 +12,6 @@ export interface ExplanationOptions extends PromptOptions {
     model: (string & {}) | ModelId;
     /** The temperature option for the LLM. */
     temperature?: number;
+    /** Whether to report progress updates via `console.log`. */
+    logs?: boolean;
 }
