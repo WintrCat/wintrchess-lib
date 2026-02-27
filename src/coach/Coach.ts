@@ -165,6 +165,8 @@ export class Coach {
         rootNode: AssessmentNode,
         opts: ExplanationOptions
     ) {
+        const startTime = performance.now();
+
         if (opts.logs) log("info", [
             "generating explanation for root node",
             `\tposition: ${makeFen(rootNode.context.position.toSetup())}`,
@@ -183,11 +185,15 @@ export class Coach {
 
         const explanation = completion.choices[0];
         if (!explanation) {
-            if (opts.logs) log("error", "failed to generate explanation.");
+            if (opts.logs) log("error", "failed to generate explanation");
             throw new Error("failed to generate explanation.");
         }
 
-        if (opts.logs) log("success", "successfully generated explanation.");
+        const elapsed = (performance.now() - startTime) / 1000;
+        if (opts.logs) log("success",
+            `successfully generated explanation (${elapsed.toFixed(3)}s)`
+        );
+
         return explanation.message.content || "";
     }
 }
