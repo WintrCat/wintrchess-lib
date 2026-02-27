@@ -5,9 +5,11 @@ TypeScript library with Chess operations and tools for WintrChess.
 ###### For the time being, documentation is provided via JSDoc.
 
 ## Subpackages
-`wintrchess/engine` - Classes for interacting with UCI engines and analysis related functions.
+`wintrchess/engine` - UCI engine class for a browser runtime, and analysis related functions.
 
-`wintrchess/commentary` - Natural language move and position explanations, using an engine and traditional code; an LLM is used only for language construction.
+`wintrchess/engine/node` - A UCI engine for a Node.js runtime.
+
+`wintrchess/coach` - Natural language move and position explanations, using a concrete Chess engine for analysis, and LLM for personality and language construction.
 
 `wintrchess/classify` **(WIP)** - Move classifications (brilliant, blunder etc.)
 
