@@ -1,4 +1,7 @@
-import { AssessmentNode } from "../types/assessment/node";
+import {
+    AssessmentNode,
+    AssessmentNodeWithMove
+} from "../types/assessment/node";
 
 /**
  * Recursively remove `parent` from all nodes in a tree below a
@@ -15,19 +18,22 @@ export function orphanizeAssessmentNode(node: AssessmentNode) {
 }
 
 /** Returns the nodes from the root to the given node. */
-export function getAssessmentNodeChain(
+export function getAssessmentNodeChain<MO extends boolean>(
     node: AssessmentNode,
-    movesOnly = false
+    movesOnly?: MO
 ) {
     const nodes: AssessmentNode[] = [];
     let current: AssessmentNode | undefined = node;
 
     while (current) {
-        if (movesOnly && !current.context.move) return nodes;
+        if (movesOnly && !current.context.move) break;
 
         nodes.unshift(current);
         current = current.parent;
     }
 
-    return nodes;
+    return nodes as (MO extends true
+        ? AssessmentNodeWithMove
+        : AssessmentNode
+    )[];
 }

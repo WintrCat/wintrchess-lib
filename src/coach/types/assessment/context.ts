@@ -5,6 +5,8 @@ import { EngineLine } from "@/engine";
 import { GameStage } from "@/utils";
 
 export type AssessmentMoveContext = AnalysedMove & {
+    /** The position before this move was played. */
+    lastPosition: Chess;
     /** Capturing moves the moved piece can now make. */
     attackMoves: ContextualCapture[];
     /** Capturing moves the piece could have made before `move`. */

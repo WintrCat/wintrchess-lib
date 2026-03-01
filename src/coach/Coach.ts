@@ -8,6 +8,7 @@ import {
     getWinPercentLoss
 } from "@/engine";
 import { getAttackMoves, getGameStage } from "@/utils";
+import { beforeMove } from "@/types";
 import { CoachOptions } from "./types/CoachOptions";
 import {
     AssessmentContext,
@@ -57,10 +58,11 @@ export class Coach {
 
         // Get move context, maybe requiring calculation of last context
         if (!opts.move) return contexts;
+        const lastPosition = beforeMove(opts.position, opts.move);
 
         contexts.last ??= (await this.getAssessmentContext({
             evaluations: opts.evaluations,
-            position: opts.move.lastPosition
+            position: lastPosition
         })).current;
 
         const lastEvaluation = getEvaluation(contexts.last.engineLines);
@@ -71,15 +73,16 @@ export class Coach {
         const lossArgs = [
             lastEvaluation,
             evaluation,
-            opts.move.lastPosition.turn
+            lastPosition.turn
         ] as const;
 
         contexts.current.move = {
             ...opts.move,
+            lastPosition: lastPosition,
             winPercentLoss: getWinPercentLoss(...lossArgs),
             centipawnLoss: getCentipawnLoss(...lossArgs),
             lastAttackMoves: getAttackMoves(
-                opts.move.lastPosition, opts.move.from
+                lastPosition, opts.move.from
             ),
             attackMoves: getAttackMoves(opts.position, opts.move.to)
         };

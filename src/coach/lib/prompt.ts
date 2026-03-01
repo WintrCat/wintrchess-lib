@@ -52,7 +52,7 @@ export function buildMoveTitle(node: AssessmentNode) {
         return `${colour} has just played ${san} in this position:`;
 
     const sanChain = getAssessmentNodeChain(node, true).map(node => (
-        makeSan(node.context.move!.lastPosition, node.context.move!)
+        makeSan(node.context.move.lastPosition, node.context.move)
     ));
 
     if (sanChain.length == 1)

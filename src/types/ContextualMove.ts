@@ -1,6 +1,6 @@
-import { Chess, NormalMove, Piece } from "chessops";
+import { Chess, NormalMove, opposite, Piece } from "chessops";
 
-import { getEnPassantedPawn } from "@/utils/pawns";
+import { getEnPassantedPawn, isEnPassant } from "@/utils/pawns";
 import { LocatedPiece } from "./LocatedPiece";
 
 /** A move with the context of the position it was played in. */
@@ -12,8 +12,6 @@ export interface ContextualMove extends NormalMove {
      * differ from `to` for en passant captures.
      */
     captured?: LocatedPiece;
-    /** The position prior to the move. */
-    lastPosition: Chess;
 }
 
 /** A contextual move with a definite capture. */
@@ -49,8 +47,33 @@ export function contextualizeMove(
     const captured = getEnPassantedPawn(position, move)
         || (destOccupant && { ...destOccupant, square: move.to });
 
-    return {
-        ...move, piece, captured,
-        lastPosition: position.clone()
-    };
+    return { ...move, piece, captured };
+}
+
+/**
+ * Undo a contextual move from a position and return the
+ * previous position.
+ */
+export function beforeMove(
+    position: Chess,
+    move: ContextualMove
+) {
+    const copy = position.clone();
+
+    const movedPiece = copy.board.take(move.to);
+    if (!movedPiece) return position;
+
+    copy.board.set(move.from, {
+        ...movedPiece,
+        role: move.promotion ? "pawn" : movedPiece.role
+    });
+
+    if (move.captured)
+        copy.board.set(move.captured.square, move.captured);
+
+    copy.turn = opposite(copy.turn);
+
+    if (isEnPassant(copy, move)) copy.epSquare = move.to;
+    
+    return copy;
 }

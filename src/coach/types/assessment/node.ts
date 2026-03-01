@@ -1,4 +1,4 @@
-import { AssessmentContext } from "./context";
+import { AssessmentContext, AssessmentMoveContext } from "./context";
 
 /** A position in the tree of positions explored by an assessment. */
 export interface AssessmentNode {
@@ -17,3 +17,8 @@ export interface AssessmentNode {
     /** The context produced to run observations on this position. */
     context: AssessmentContext;
 }
+
+export type AssessmentNodeWithMove = Omit<AssessmentNode, "context"> & {
+    context: Omit<AssessmentContext, "move">
+        & { move: AssessmentMoveContext }
+};
