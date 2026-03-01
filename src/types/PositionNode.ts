@@ -1,28 +1,15 @@
+import { INITIAL_FEN } from "chessops/fen";
+
 import { EngineLine } from "@/engine";
 import { ContextualMove } from "./ContextualMove";
 
-type Depth = readonly boolean[];
-
-type LastDepth<C extends Depth> = (
-    C extends [...infer Head, infer _Tail] ? Head : never
-);
-
-type NextDepth<C extends Depth> = [...C, true];
-
-export interface PositionNode<D extends Depth | null = null> {
+export interface PositionNode {
     /** The previous position node */
-    parent: D extends Depth
-        ? (LastDepth<D> extends never
-            ? undefined
-            : PositionNode<LastDepth<D>>
-        )
-        : (PositionNode | undefined);
+    parent?: PositionNode;
     /** The next position nodes */
-    children: PositionNode<D extends Depth ? NextDepth<D> : null>[];
+    children: PositionNode[];
     /** The move that has just been played in this position. */
-    move: D extends Depth
-        ? (D extends [] ? undefined : ContextualMove)
-        : (ContextualMove | undefined);
+    move?: ContextualMove;
     /**
      * If this node is the mainline continuation of the parent node.
      * Note that the root node is also considered mainline.
@@ -32,11 +19,15 @@ export interface PositionNode<D extends Depth | null = null> {
     fen: string;
 }
 
-export interface AnalysedPositionNode<
-    D extends Depth | null = null
-> extends PositionNode<D> {
+export interface AnalysedPositionNode extends PositionNode {
     /** A set of engine lines for this position. */
     engineLines: EngineLine[];
     /** Results from the openings database for this position. */
     database?: {};
 }
+
+export const defaultPositionNode: PositionNode = {
+    children: [],
+    fen: INITIAL_FEN,
+    isMainline: true
+};

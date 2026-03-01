@@ -5,7 +5,7 @@ import { isDevelopingMove, center, flank, fianchetto } from "@/utils";
 
 export const centralControl: Observation = ctx => {
     if (!ctx.move) return null;
-    if (!isDevelopingMove(ctx.move, true)) return null;
+    if (!isDevelopingMove(ctx.position, ctx.move, true)) return null;
     const piece = ctx.move.piece;
 
     const visibleSquares = attacks(

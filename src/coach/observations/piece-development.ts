@@ -57,7 +57,7 @@ export const pieceDevelopment: Observation = ctx => {
     );
     
     // Moves that develop a piece
-    if (isDevelopingMove(ctx.move)) {
+    if (isDevelopingMove(ctx.position, ctx.move)) {
         const edgeKnightStatement = edgeFiles().has(ctx.move.to)
             && ctx.move.piece.role == "knight"
             && " to the edge of the board, where it could be less active";
@@ -78,7 +78,7 @@ export const pieceDevelopment: Observation = ctx => {
     }
 
     // Moves that undevelop a piece back to the backrank
-    if (isUndevelopingMove(ctx.move)) statements.push(
+    if (isUndevelopingMove(ctx.position, ctx.move)) statements.push(
         `This move undevelops a ${ctx.move.piece.role}.`
     );
 

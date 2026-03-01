@@ -11,7 +11,7 @@ import {
 import { minBy, uniqWith } from "es-toolkit";
 
 import { contextualizeMove, ContextualCapture, LocatedPiece } from "@/types";
-import { isPromotion } from "./pawns";
+import { isPromotion } from "../pawns";
 
 const PROMOTABLE_ROLES: Role[] = ["knight", "bishop", "rook", "queen"];
 
