@@ -1,7 +1,7 @@
 import { makeSan } from "chessops/san";
 import { capitalize } from "es-toolkit";
 
-import { PromptOptions } from "../types/ExplanationOptions";
+import { PromptOptions, PromptPerson } from "../types/ExplanationOptions";
 import { AssessmentNode } from "../types/assessment/node";
 import { getAssessmentNodeChain } from "./assessment-node";
 
@@ -22,12 +22,26 @@ const promptTemplate = `
     already contextually established.
 `;
 
+const promptPersonComments: Record<PromptPerson, string> = {
+    first: "Give your response from the first grammatical person, "
+        + "as if the move played in this position was yours, and as "
+        + "if you are the player facing the current position.",
+    second: "Give your response from the second grammatical person, "
+        + "as if the move played in this position was mine, and as "
+        + "if I (the user) am the player facing the current position.",
+    third: "Give your response from the third grammatical person, "
+        + "as if the players are not known and you are looking at moves "
+        + "from an external perspective."
+};
+
 /** Builds only the introductory brief for a coach prompt. */
 export function buildPromptTemplate(opts?: PromptOptions) {
     let prompt = promptTemplate
         .replace(/ {2,}/g, "")
         .replace(/\n/g, " ")
         .trim();
+
+    prompt += "\n" + promptPersonComments[opts?.person || "third"];
 
     if (opts?.personality) prompt += (
         "\nGive your response with the "
