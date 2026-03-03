@@ -1,6 +1,5 @@
 import {
     Chess,
-    NormalMove,
     Role,
     Square,
     SquareSet,
@@ -10,10 +9,8 @@ import {
 } from "chessops";
 import { minBy, uniqWith } from "es-toolkit";
 
-import { contextualizeMove, ContextualCapture, LocatedPiece } from "@/types";
-import { isPromotion } from "../pawns";
-
-const PROMOTABLE_ROLES: Role[] = ["knight", "bishop", "rook", "queen"];
+import { ContextualCapture, LocatedPiece } from "@/types";
+import { unfoldMove } from "./legal-moves";
 
 export const PIECE_VALUES: Record<Role, number> = {
     pawn: 1,
@@ -74,28 +71,10 @@ export function getAttackMoves(
     if (enforceLegal)
         victims = victims.intersect(position.dests(square));
 
-    const attackingMoves: ContextualCapture[] = [];
-
-    // Generate legal moves and, if necessary, all promotions
-    for (const victimSquare of victims) {
-        const move: NormalMove = { from: square, to: victimSquare };
-
-        if (isPromotion(position, move)) {
-            PROMOTABLE_ROLES.forEach(role => attackingMoves.push(
-                contextualizeMove(
-                    position,
-                    { ...move, promotion: role },
-                    enforceLegal
-                ) as ContextualCapture
-            ));
-        } else {
-            attackingMoves.push(contextualizeMove(
-                position, move, enforceLegal
-            ) as ContextualCapture);
-        }
-    }
-
-    return attackingMoves;
+    // Returns all moves from square to victim
+    return [...victims].map(victim => unfoldMove(
+        position, { from: square, to: victim }
+    )).flat() as ContextualCapture[];
 }
 
 /**
@@ -177,10 +156,10 @@ export function getDefenders(
 /**
  * Returns the amount of material to be won by exchanging on a given square
  * at least once with the least valuable attacker. A negative number denotes
- * material loss. Where `square` may be captured by en passant, the exchange
- * square may move to the destination of the en passant move.
+ * material loss. Where the piece on `square` may be captured by en passant,
+ * the exchange square may move to the destination of the en passant move.
  * @param opts.enforceLegal If exchanging moves should be validated for
- * legality i.e disallow pinned pieces to exchange.
+ * legality i.e disallow pinned pieces to exchange. Defaults to `true`.
  * @param opts.promoted If it is known that the piece at `square` was
  * just promoted. If so, it will be treated as worth a pawn.
  */

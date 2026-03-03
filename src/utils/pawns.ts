@@ -18,7 +18,10 @@ export function isEnPassant(position: Chess, move: NormalMove) {
         && pawnAttacks(piece.color, move.from).has(move.to);
 }
 
-/** Returns the captured pawn in an en passant move. */
+/**
+ * Returns the captured pawn in an en passant move. If no move is
+ * provided, it will attempt to get a pawn from the board's e.p. square.
+ */
 export function getEnPassantedPawn(
     position: Chess,
     move?: NormalMove
@@ -28,10 +31,15 @@ export function getEnPassantedPawn(
     const epSquare = position.epSquare || move?.to;
     if (epSquare == undefined) return;
 
-    return {
-        color: opposite(position.turn),
-        role: "pawn",
-        square: epSquare + (position.turn == "white" ? -8 : 8)
+    const passantedPawnSquare = epSquare + (
+        position.turn == "white" ? -8 : 8
+    );
+    
+    const passantedPawn = position.board.get(passantedPawnSquare);
+
+    return passantedPawn && {
+        ...passantedPawn,
+        square: passantedPawnSquare
     };
 }
 

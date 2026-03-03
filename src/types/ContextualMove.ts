@@ -1,5 +1,6 @@
 import { Chess, NormalMove, opposite, Piece } from "chessops";
 
+import { Classification } from "@/classify";
 import { getEnPassantedPawn, isEnPassant } from "@/utils/pawns";
 import { LocatedPiece } from "./LocatedPiece";
 
@@ -21,14 +22,7 @@ export interface ContextualCapture extends ContextualMove {
 
 export interface AnalysedMove extends ContextualMove {
     /** e.g. `brilliant`, `blunder`, `theory` etc. */
-    // classification: Classification;
-    /** Win probability lost as a result of this move. (0-100) */
-    winPercentLoss: number;
-    /**
-     * Centipawns lost as a result of this move.
-     * Not defined when a forced mate is involved.
-     */
-    centipawnLoss?: number;
+    classification?: Classification;
 }
 
 /** Contextualize a move given a position and the move applied to it. */

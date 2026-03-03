@@ -182,6 +182,7 @@ export abstract class Engine {
      * Evaluate the position and return recommended lines. If you
      * do this while another evaluation is running, remember that
      * the other will stop and return its current lines immediately.
+     * Note: ALL evaluations are given from White's perspective.
      */
     async evaluate(options?: EvaluateOptions) {
         const currentPosition = this.position;

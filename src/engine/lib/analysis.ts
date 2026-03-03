@@ -4,11 +4,11 @@ import { EngineLine } from "../types/EngineLine";
 import { Evaluation } from "../types/Evaluation";
 
 /** Returns the highest depth line of index 1. */
-export function getTopLine(lines: EngineLine[]) {
+export function getTopLine(lines: EngineLine[], index = 1) {
     let top: EngineLine | undefined;
     
     for (const line of lines) {
-        if (line.index != 1) continue;
+        if (line.index != index) continue;
         if (!top || line.depth >= top.depth) top = line;
     }
 
@@ -23,6 +23,17 @@ export function getTopMove(lines: EngineLine[]) {
 /** Returns the evaluation from a set of lines for a given position. */
 export function getEvaluation(lines: EngineLine[]) {
     return getTopLine(lines)?.evaluation;
+}
+
+/** If a `black` perspective is given, the evaluation value is flipped. */
+export function evaluationAs(
+    evaluation: Evaluation,
+    perspective: Color
+): Evaluation {
+    return {
+        ...evaluation,
+        value: evaluation.value * (perspective == "black" ? -1 : 1)
+    };
 }
 
 /**

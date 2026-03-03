@@ -1,12 +1,7 @@
 import { OpenAI } from "openai";
 import { makeFen } from "chessops/fen";
 
-import {
-    Engine,
-    getCentipawnLoss,
-    getEvaluation,
-    getWinPercentLoss
-} from "@/engine";
+import { Engine, getEvaluation } from "@/engine";
 import { getAttackMoves, getGameStage } from "@/utils";
 import { beforeMove } from "@/types";
 import { CoachOptions } from "./types/CoachOptions";
@@ -70,17 +65,9 @@ export class Coach {
         if (!lastEvaluation || !evaluation)
             throw new Error("engine produced invalid or no lines.");
 
-        const lossArgs = [
-            lastEvaluation,
-            evaluation,
-            lastPosition.turn
-        ] as const;
-
         contexts.current.move = {
             ...opts.move,
             lastPosition: lastPosition,
-            winPercentLoss: getWinPercentLoss(...lossArgs),
-            centipawnLoss: getCentipawnLoss(...lossArgs),
             lastAttackMoves: getAttackMoves(
                 lastPosition, opts.move.from
             ),

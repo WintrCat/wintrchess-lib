@@ -18,6 +18,8 @@ export interface PositionNode {
     isMainline: boolean;
     /** The full FEN string for this position. */
     fen: string;
+    /** If this node and its sub-tree is initially visible. */
+    visible?: boolean;
 }
 
 export interface AnalysisNode extends PositionNode {
@@ -38,4 +40,11 @@ export const defaultPositionNode: PositionNode = {
     children: [],
     fen: INITIAL_FEN,
     isMainline: true
+};
+
+export const defaultAnalysisNode: AnalysisNode = {
+    ...defaultPositionNode,
+    parent: undefined,
+    children: [],
+    engineLines: []
 };
