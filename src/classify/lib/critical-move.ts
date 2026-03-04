@@ -2,6 +2,7 @@ import { isHanging } from "@/utils";
 import { getWinPercentLoss } from "@/engine";
 import { ParsedNode, PreviousParsedNode } from "../types/ParsedNode";
 import { isMoveImportant } from "./important-move";
+import { moveEquals } from "chessops/util";
 
 /**
  * Returns whether a move can be classified as `critical`, given a
@@ -12,6 +13,7 @@ export function isMoveCritical(
     current: ParsedNode
 ) {
     if (!isMoveImportant(prev, current)) return false;
+    if (!moveEquals(prev.top.move, current.move)) return false;
 
     // A critical move cannot be a capture of free material
     if (

@@ -1,7 +1,7 @@
 import { Chess, NormalMove, opposite, Piece } from "chessops";
 
 import { Classification } from "@/classify";
-import { getEnPassantedPawn, isEnPassant } from "@/utils/pawns";
+import { getEnPassantedPawn, isEnPassant } from "@/utils";
 import { LocatedPiece } from "./LocatedPiece";
 
 /** A move with the context of the position it was played in. */

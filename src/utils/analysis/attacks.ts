@@ -2,7 +2,6 @@ import {
     Chess,
     Role,
     Square,
-    SquareSet,
     attacks,
     kingAttacks,
     opposite
@@ -10,9 +9,12 @@ import {
 import { minBy, uniqWith } from "es-toolkit";
 
 import { ContextualCapture, LocatedPiece } from "@/types";
+import { ExchangeOptions, HangingPiecesOptions } from "../types/options";
 import { unfoldMove } from "./legal-moves";
 
-export const PIECE_VALUES: Record<Role, number> = {
+export type PieceValues = Record<Role, number>;
+
+export const PIECE_VALUES: PieceValues = {
     pawn: 1,
     knight: 3,
     bishop: 3,
@@ -158,43 +160,46 @@ export function getDefenders(
  * at least once with the least valuable attacker. A negative number denotes
  * material loss. Where the piece on `square` may be captured by en passant,
  * the exchange square may move to the destination of the en passant move.
- * @param opts.enforceLegal If exchanging moves should be validated for
- * legality i.e disallow pinned pieces to exchange. Defaults to `true`.
- * @param opts.promoted If it is known that the piece at `square` was
- * just promoted. If so, it will be treated as worth a pawn.
  */
 export function evaluateExchange(
     position: Chess,
     square: Square,
-    opts?: {
-        enforceLegal?: boolean;
-        promoted?: boolean;
-    }
+    opts?: ExchangeOptions
 ) {
     position = position.clone();
 
-    const see = (square: Square, promoted = false, root = true): number => {
+    const pieceValues = { ...PIECE_VALUES, ...opts?.pieceValueOverrides };
+
+    const see = (
+        square: Square,
+        move?: ContextualCapture,
+        root = true
+    ): number => {
         const victim = position.board.get(square);
-        if (!victim) throw new Error("no piece to capture.");
+        if (!victim) return 0;
 
         const lvaMove = minBy(
             getAttackerMoves(position, square, opts?.enforceLegal),
-            move => PIECE_VALUES[move.piece.role]
+            move => pieceValues[move.piece.role]
         );
         if (!lvaMove) return 0;
 
         position.play(lvaMove);
 
-        const value = PIECE_VALUES[promoted ? "pawn" : victim.role]
-            - see(lvaMove.to, !!lvaMove.promotion, false);
+        const value = pieceValues[move?.promotion ? "pawn" : victim.role]
+            - ((root && move?.to == square)
+                ? pieceValues[move.captured.role] : 0
+            )
+            - see(lvaMove.to, lvaMove, false);
 
-        return root ? value : Math.max(0, value);
+        const forceFirstCapture = opts?.forceFirst || true;
+        return (root && forceFirstCapture) ? value : Math.max(0, value);
     };
 
-    const promoted = SquareSet.backranks().has(square)
-        ? opts?.promoted : false;
-        
-    return see(square, promoted);
+    const existingCapture = opts?.move?.captured
+        && opts.move as ContextualCapture;
+    
+    return see(square, existingCapture);
 }
 
 /**
@@ -203,4 +208,21 @@ export function evaluateExchange(
  */
 export function isHanging(...args: Parameters<typeof evaluateExchange>) {
     return evaluateExchange(...args) > 0;
+}
+
+/** Returns hanging pieces on a board. */
+export function getHangingPieces(
+    position: Chess,
+    opts?: HangingPiecesOptions
+): LocatedPiece[] {
+    return [...(opts?.includedPieces || position.board.occupied)]
+        .filter(square => (
+            evaluateExchange(position, square, opts)
+            >= (opts?.minimumMaterialGain || 1)
+        ))
+        .map(square => {
+            const piece = position.board.get(square);
+            return piece && { ...piece, square };
+        })
+        .filter(square => square != undefined);
 }

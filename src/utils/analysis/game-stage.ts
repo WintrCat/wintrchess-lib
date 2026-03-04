@@ -1,8 +1,6 @@
 import { Board, COLORS, SquareSet } from "chessops";
 
-export const GAME_STAGES = ["opening", "middlegame", "endgame"] as const;
-
-export type GameStage = typeof GAME_STAGES[number];
+import { GameStage } from "../types/GameStage";
 
 /** Returns the stage of the game that the board's position is in. */
 export function getGameStage(board: Board): GameStage {
