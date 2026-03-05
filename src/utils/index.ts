@@ -6,8 +6,9 @@ export * from "./analysis/legal-moves";
 export * from "./analysis/piece-development"
 export * from "./analysis/game-stage";
 export * from "./analysis/attacks";
+export * from "./analysis/trapped-pieces";
 
 export * from "./types/GameStage";
-export * from "./types/options";
+export * from "./types/exchanges";
 
 export { default as openings } from "./openings";

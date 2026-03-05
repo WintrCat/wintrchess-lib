@@ -36,15 +36,19 @@ export interface AnalysisNode extends PositionNode {
     database?: {};
 }
 
-export const defaultPositionNode: PositionNode = {
-    children: [],
-    fen: INITIAL_FEN,
-    isMainline: true
-};
+export function defaultPositionNode(): PositionNode {
+    return {
+        children: [],
+        fen: INITIAL_FEN,
+        isMainline: true
+    };
+}
 
-export const defaultAnalysisNode: AnalysisNode = {
-    ...defaultPositionNode,
-    parent: undefined,
-    children: [],
-    engineLines: []
-};
+export function defaultAnalysisNode(): AnalysisNode {
+    return {
+        ...defaultPositionNode(),
+        parent: undefined,
+        children: [],
+        engineLines: []
+    };
+}

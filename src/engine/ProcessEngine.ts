@@ -3,7 +3,10 @@ import { spawn } from "child_process";
 import { Engine, EngineEvents } from "./Engine";
 import { UCICommand } from "./types/uci";
 
-/** Engine adapter that spawns a child process. */
+/**
+ * Engine adapter that spawns a child process. Remember that the parent
+ * process cannot stop running until all engines are terminated.
+ */
 export class ProcessEngine extends Engine {
     protected process;
 

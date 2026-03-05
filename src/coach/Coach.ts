@@ -15,7 +15,6 @@ import {
 } from "./types/assessment/options";
 import { AssessmentNode } from "./types/assessment/node";
 import { ExplanationOptions } from "./types/ExplanationOptions";
-import { log } from "./lib/logging";
 import { buildPrompt } from "./lib/prompt";
 import { DEFAULT_OBSERVATIONS } from "./observations";
 
@@ -89,7 +88,7 @@ export class Coach {
         }
     ): Promise<AssessmentNode> {
         const startTime = performance.now();
-        if (opts.logs) log("info",
+        if (opts.logs) console.log(
             `assessing ${makeFen(opts.position.toSetup())}`
         );
 
@@ -97,15 +96,16 @@ export class Coach {
             opts, nodeOpts?.parentNode?.context
         );
 
-        if (opts.logs) log("success", "generated current context"
-            + (nodeOpts?.parentNode?.context ? "" : " and last context.")
+        if (opts.logs) console.log(
+            "generated current context"
+            + (nodeOpts?.parentNode?.context ? "." : " and last context.")
         );
 
         const observations = opts.observations || DEFAULT_OBSERVATIONS;
         const results = observations.map(async (obs, index) => {
             const result = await obs(contexts.current, contexts.last);
 
-            if (opts.logs) log("success",
+            if (opts.logs) console.log(
                 `executed ${++index} of ${observations.length} `
                 + `observations: ${JSON.stringify(result)}`
             );
@@ -132,7 +132,7 @@ export class Coach {
         };
         
         const elapsed = (performance.now() - startTime) / 1000;
-        if (opts.logs) log("success",
+        if (opts.logs) console.log(
             `assessement complete (${elapsed.toFixed(3)}s)`
         );
 
@@ -157,7 +157,7 @@ export class Coach {
     ) {
         const startTime = performance.now();
 
-        if (opts.logs) log("info", [
+        if (opts.logs) console.log([
             "generating explanation for root node",
             `\tposition: ${makeFen(rootNode.context.position.toSetup())}`,
             `\tmodel: ${opts.model}`,
@@ -175,12 +175,12 @@ export class Coach {
 
         const explanation = completion.choices[0];
         if (!explanation) {
-            if (opts.logs) log("error", "failed to generate explanation");
+            if (opts.logs) console.log("failed to generate explanation");
             throw new Error("failed to generate explanation.");
         }
 
         const elapsed = (performance.now() - startTime) / 1000;
-        if (opts.logs) log("success",
+        if (opts.logs) console.log(
             `successfully generated explanation (${elapsed.toFixed(3)}s)`
         );
 

@@ -1,6 +1,6 @@
 import { SquareSet } from "chessops";
 
-import { ContextualMove } from "@/types";
+import { ContextualMove, LocatedPiece } from "@/types";
 import { PieceValues } from "../analysis/attacks";
 
 export interface ExchangeOptions {
@@ -33,4 +33,12 @@ export interface HangingPiecesOptions extends ExchangeOptions {
      * piece for it to be considered hanging. Defaults to `1`.
      */
     minimumMaterialGain?: number;
+}
+
+export interface HangingPiece extends LocatedPiece {
+    /**
+     * The amount of material the opponent stands to gain if they were
+     * to capture this piece with their lowest value attacker.
+     */
+    exchange: number;
 }

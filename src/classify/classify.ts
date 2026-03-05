@@ -1,3 +1,5 @@
+import { makeBoardFen } from "chessops/fen";
+
 import { AnalysisNode } from "@/types";
 import { hasLegalMoveCount, openings } from "@/utils";
 import {
@@ -17,6 +19,8 @@ export interface ClassifyOptions {
      * Defaults to those on [WintrChess](https://wintrchess.com).
      */
     wplThresholds?: Partial<Record<WPLClassification, number>>;
+    /** Whether to output debug logs through `console.log`. */
+    logs?: boolean;
 }
 
 /** Classify a move based only on Win% loss. */
@@ -58,15 +62,21 @@ export function classify(
     const ctx = parseAnalysisNode(node, "current");
     const prevCtx = parseAnalysisNode(node.parent, "previous");
 
+    console.log()
+
     // Ensure at least 1 wp-loss classification is included
     if (WPL_CLASSIFICATIONS.every(classif => opts?.exclude?.has(classif)))
         throw new Error("cannot exclude all WPL classifications.");
 
-    if (!opts?.exclude?.has("forced") && hasLegalMoveCount(ctx.position, 1))
-        return "forced";
+    if (
+        !opts?.exclude?.has("forced")
+        && hasLegalMoveCount(ctx.position, 1)
+    ) return "forced";
 
-    if (!opts?.exclude?.has("theory") && openings[node.fen])
-        return "theory";
+    if (
+        !opts?.exclude?.has("theory")
+        && openings[makeBoardFen(ctx.position.board)]
+    ) return "theory";
 
     const wplClassification = wplClassify(ctx.winPercentLoss, opts);
 

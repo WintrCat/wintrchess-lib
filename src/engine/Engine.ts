@@ -58,7 +58,7 @@ export abstract class Engine {
     async consumeLogs(
         command: UCICommand,
         endCondition: (logMessage: string) => boolean,
-        options?: {
+        opts?: {
             onLogReceived?: (log: string) => void;
             timeout?: number;
         }
@@ -73,16 +73,20 @@ export abstract class Engine {
                 rej(message);
             };
 
-            const timeout = options?.timeout != undefined
-                ? setTimeout(onErrorReceived, options.timeout) : null;
+            const timeout = opts?.timeout != undefined
+                ? setTimeout(onErrorReceived, opts.timeout) : null;
 
-            const onMessageReceived = (message: string) => {
-                options?.onLogReceived?.(message);
-                logMessages.push(message);
+            const onMessageReceived = (messageBlock: string) => {
+                const messages = messageBlock.split("\n");
+                
+                logMessages.push(...messages);
+                for (const message of messages) {
+                    opts?.onLogReceived?.(message);
+                }
 
-                if (!endCondition(message)) return;
+                if (!messages.some(msg => endCondition(msg))) return;
     
-                if (timeout) clearTimeout(timeout);
+                if (timeout != undefined) clearTimeout(timeout);
                 cleanup();
                 res(logMessages);
             };

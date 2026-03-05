@@ -9,7 +9,11 @@ import {
 import { minBy, uniqWith } from "es-toolkit";
 
 import { ContextualCapture, LocatedPiece } from "@/types";
-import { ExchangeOptions, HangingPiecesOptions } from "../types/options";
+import {
+    ExchangeOptions,
+    HangingPiece,
+    HangingPiecesOptions
+} from "../types/exchanges";
 import { unfoldMove } from "./legal-moves";
 
 export type PieceValues = Record<Role, number>;
@@ -214,15 +218,17 @@ export function isHanging(...args: Parameters<typeof evaluateExchange>) {
 export function getHangingPieces(
     position: Chess,
     opts?: HangingPiecesOptions
-): LocatedPiece[] {
-    return [...(opts?.includedPieces || position.board.occupied)]
-        .filter(square => (
-            evaluateExchange(position, square, opts)
-            >= (opts?.minimumMaterialGain || 1)
-        ))
-        .map(square => {
-            const piece = position.board.get(square);
-            return piece && { ...piece, square };
-        })
-        .filter(square => square != undefined);
+) {
+    const included = opts?.includedPieces || position.board.occupied;
+    const minimumMaterialGain = opts?.minimumMaterialGain || 1;
+
+    return [...included].reduce((pieces, square) => {
+        const exchange = evaluateExchange(position, square, opts);
+        if (exchange < minimumMaterialGain) return pieces;
+
+        const piece = position.board.get(square);
+        if (!piece) return pieces;
+
+        return [...pieces, { ...piece, square, exchange }];
+    }, [] as HangingPiece[]);
 }
