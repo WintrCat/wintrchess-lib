@@ -1,4 +1,5 @@
 import { makeBoardFen } from "chessops/fen";
+import { makeUci, moveEquals } from "chessops/util";
 
 import { AnalysisNode } from "@/types";
 import { hasLegalMoveCount, openings } from "@/utils";
@@ -62,7 +63,12 @@ export function classify(
     const ctx = parseAnalysisNode(node, "current");
     const prevCtx = parseAnalysisNode(node.parent, "previous");
 
-    console.log()
+    if (opts?.logs) {
+        console.log(`current eval: ${JSON.stringify(ctx.top.evaluation)}`);
+        console.log(`last eval: ${JSON.stringify(prevCtx.top.evaluation)}`);
+        
+        console.log(`best alternative move: ${makeUci(prevCtx.top.move)}`);
+    }
 
     // Ensure at least 1 wp-loss classification is included
     if (WPL_CLASSIFICATIONS.every(classif => opts?.exclude?.has(classif)))
@@ -78,11 +84,12 @@ export function classify(
         && openings[makeBoardFen(ctx.position.board)]
     ) return "theory";
 
-    const wplClassification = wplClassify(ctx.winPercentLoss, opts);
+    const wplClassification = moveEquals(prevCtx.top.move, ctx.move)
+        ? "best" : wplClassify(ctx.winPercentLoss, opts);
 
     if (wplClassification == "best") {
-        if (isMoveBrilliant(prevCtx, ctx)) return "brilliant";
-        if (isMoveCritical(prevCtx, ctx)) return "critical";
+        if (isMoveBrilliant(prevCtx, ctx, opts?.logs)) return "brilliant";
+        if (isMoveCritical(prevCtx, ctx, opts?.logs)) return "critical";
     }
 
     return wplClassification;

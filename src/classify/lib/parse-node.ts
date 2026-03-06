@@ -1,3 +1,5 @@
+import { opposite } from "chessops";
+
 import { AnalysisNode, contextualizeMove } from "@/types";
 import { chessFromFen } from "@/utils";
 import { evaluationAs, getTopLine, getWinPercentLoss } from "@/engine";
@@ -66,7 +68,8 @@ export function parseAnalysisNode(
             move: contextualizeMove(position, topMove),
             evaluation: topLine.evaluation,
             sidedEvaluation: evaluationAs(
-                topLine.evaluation, position.turn
+                topLine.evaluation,
+                opposite(position.turn)
             )
         },
         secondTop: {
@@ -74,7 +77,8 @@ export function parseAnalysisNode(
             move: contextualizeMove(position, secondTopMove),
             evaluation: secondTopLine.evaluation,
             sidedEvaluation: evaluationAs(
-                secondTopLine.evaluation, position.turn
+                secondTopLine.evaluation,
+                opposite(position.turn)
             )
         }
     } satisfies ParsedNode | PreviousParsedNode;

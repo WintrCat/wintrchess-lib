@@ -1,3 +1,4 @@
+import { makeSquare, makeUci } from "chessops";
 import { sumBy } from "es-toolkit";
 
 import {
@@ -17,15 +18,27 @@ import { isMoveImportant } from "./important-move";
  */
 export function isMoveBrilliant(
     prev: PreviousParsedNode,
-    current: ParsedNode
+    current: ParsedNode,
+    logs = false
 ) {
-    if (!isMoveImportant(prev, current)) return false;
+    const log = (msg: string) => {
+        if (logs) console.log(msg);
+        return false;
+    };
+
+    log(`testing ${makeUci(current.move)} for brilliant...`);
+
+    if (!isMoveImportant(prev, current))
+        return log("move was not considered important");
 
     // Brilliants cannot leave you in a bad position
-    if (current.top.sidedEvaluation.value < 0) return false;
+    if (current.top.sidedEvaluation.value < 0) {
+        const logEval = JSON.stringify(current.top.sidedEvaluation);
+        return log(`after move eval is bad: ${logEval}`);
+    }
 
     // Moving a piece to safety cannot be brilliant, even if there are
-    // other hanging pieces. This covers moving away from a fork.
+    // other hanging pieces. This covers moving away from a fork
     const piecesOptions: HangingPiecesOptions = {
         includedPieces: current.position.board[prev.position.turn],
         minimumMaterialGain: 2
@@ -37,19 +50,26 @@ export function isMoveBrilliant(
         ...piecesOptions, move: current.move
     });
     
-    if (hanging.length < prevHanging.length) return false;
+    if (hanging.length < prevHanging.length)
+        return log("less hanging pieces than before");
 
     // If total amount of material threatened by mover is equal or greater
-    // than that threatened by the opponent, danger levels & not brilliant.
+    // than that threatened by the opponent, danger levels & not brilliant
     const opponentHanging = getHangingPieces(current.position, {
-        includedPieces: current.position.board[current.position.turn],
-        minimumMaterialGain: 2
+        ...piecesOptions,
+        includedPieces: current.position.board[current.position.turn]
     });
+
+    // no move provided, because danger levels only deals with threats
+    // that exist after the move has been played
+    const statelessHanging = getHangingPieces(
+        current.position, piecesOptions
+    );
 
     if (
         sumBy(opponentHanging, piece => piece.exchange)
-        >= sumBy(hanging, piece => piece.exchange)
-    ) return false;
+        >= sumBy(statelessHanging, piece => piece.exchange)
+    ) return log("hanging opponent material >= yours");
 
     // If taking any of the mover's hanging pieces all allow mate in 1,
     // this move is not awesome enough for brilliant!
@@ -62,7 +82,9 @@ export function isMoveBrilliant(
             ));
         })
     ));
-    if (allCapturesAllowMate) return false;
+
+    if (allCapturesAllowMate)
+        return log("any capture of your hanging pieces allows mate");
 
     // If all the mover's hanging pieces are trapped anyway, not brilliant
     // If a move is made to untrap a piece, not brilliant
@@ -77,13 +99,21 @@ export function isMoveBrilliant(
     if (
         trappedPieces.length == hanging.length
         || trappedPieces.length < prevTrappedPieces.length
-    ) return false;
+    ) return log(
+        "all hanging pieces are trapped, or there are less"
+        + " hanging pieces than in the last position."
+    );
 
     // If the moved piece was trapped (desperado), not brilliant
     const movedPieceTrapped = prevTrappedPieces.some(
         piece => piece.square == current.move.from
     );
-    if (movedPieceTrapped) return false;
+
+    if (movedPieceTrapped)
+        return log("piece trapped in the last position.");
+
+    log(`identified ${hanging.length} hanging piece(s):`);
+    log(hanging.map(piece => makeSquare(piece.square)).join(", "));
 
     return hanging.length > 0;
 }

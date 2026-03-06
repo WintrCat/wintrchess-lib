@@ -1,8 +1,9 @@
+import { makeUci, moveEquals } from "chessops/util";
+
 import { isHanging } from "@/utils";
 import { getWinPercentLoss } from "@/engine";
 import { ParsedNode, PreviousParsedNode } from "../types/ParsedNode";
 import { isMoveImportant } from "./important-move";
-import { moveEquals } from "chessops/util";
 
 /**
  * Returns whether a move can be classified as `critical`, given a
@@ -10,16 +11,27 @@ import { moveEquals } from "chessops/util";
  */
 export function isMoveCritical(
     prev: PreviousParsedNode,
-    current: ParsedNode
+    current: ParsedNode,
+    logs = false
 ) {
-    if (!isMoveImportant(prev, current)) return false;
-    if (!moveEquals(prev.top.move, current.move)) return false;
+    const log = (msg: string) => {
+        if (logs) console.log(msg);
+        return false;
+    };
+
+    log(`testing ${makeUci(current.move)} for critical...`);
+
+    if (!isMoveImportant(prev, current))
+        return log("move was not considered important");
+
+    if (!moveEquals(prev.top.move, current.move))
+        return log("the move was not the top engine line");
 
     // A critical move cannot be a capture of free material
     if (
         current.move.captured
         && isHanging(prev.position, current.move.captured.square)
-    ) return false;
+    ) return log("the move was a capture of free material");
 
     // If difference between top and second top is over 10% WPL
     // 10% loss is in between an inaccuracy and mistake
@@ -27,6 +39,8 @@ export function isMoveCritical(
         prev.top.sidedEvaluation,
         prev.secondTop.sidedEvaluation
     );
+
+    log(`WPL between top and 2nd top move: ${secondTopWinPercentLoss}`);
 
     return secondTopWinPercentLoss >= 0.1;
 }
