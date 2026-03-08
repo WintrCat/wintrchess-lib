@@ -11,7 +11,7 @@ TypeScript library with Chess operations and tools for WintrChess.
 
 `wintrchess/coach` - Natural language move and position explanations, using a concrete Chess engine for analysis, and LLM for personality and language construction.
 
-`wintrchess/classify` **(WIP)** - Move classifications (brilliant, blunder etc.)
+`wintrchess/classify` - Move classifications (brilliant, blunder etc.)
 
 `wintrchess/utils` - Utility functions for random Chess stuff.
 
@@ -22,6 +22,10 @@ TypeScript library with Chess operations and tools for WintrChess.
 - `pnpm install` / `npm install`
 
 - `pnpm build` / `npm run build`
+
+## Testing
+
+- `pnpm test`
 
 > [!NOTE]
 > This is not currently in use on the live WintrChess deployment.
