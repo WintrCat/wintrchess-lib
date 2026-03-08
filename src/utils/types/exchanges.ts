@@ -1,7 +1,21 @@
-import { SquareSet } from "chessops";
+import { Role, SquareSet } from "chessops";
 
 import { ContextualMove, LocatedPiece } from "@/types";
-import { PieceValues } from "../analysis/attacks";
+
+export type PieceValues = Record<Role, number>;
+
+export interface AttackMovesOptions {
+    /**
+     * If attacking moves should be validated for legality i.e
+     * disallow pinned pieces to capture. Defaults to `true`.
+     */
+    enforceLegal?: boolean;
+    /**
+     * If attacking moves that are promotions should be unfolded into
+     * several move objects for each promotion type. Defaults to `true`.
+     */
+    unfold?: boolean;
+}
 
 export interface ExchangeOptions {
     /**
@@ -23,6 +37,18 @@ export interface ExchangeOptions {
     forceFirst?: boolean;
     /** Override the default piece values. */
     pieceValueOverrides?: Omit<PieceValues, "king">;
+    /** Pieces that are not allowed to capture on the exchange square. */
+    excludedCapturers?: SquareSet;
+}
+
+export interface ExchangeResult {
+    /**
+     * The amount of material won after exchanging at least once with the
+     * least valuable attacker. A negative number denotes material loss.
+     */
+    evaluation: number;
+    /** The pieces that captured on the exchange square at some point. */
+    capturers: LocatedPiece[];
 }
 
 export interface HangingPiecesOptions extends ExchangeOptions {
@@ -36,9 +62,6 @@ export interface HangingPiecesOptions extends ExchangeOptions {
 }
 
 export interface HangingPiece extends LocatedPiece {
-    /**
-     * The amount of material the opponent stands to gain if they were
-     * to capture this piece with their lowest value attacker.
-     */
-    exchange: number;
+    /** The result from evaluating an exchange on this piece's square. */
+    exchange: ExchangeResult;
 }

@@ -1,8 +1,43 @@
-import { SquareSet, Color, parseSquare } from "chessops";
+import {
+    SquareSet,
+    Color,
+    parseSquare,
+    Square,
+    SquareName
+} from "chessops";
+
+import { LocatedPiece } from "@/types";
+
+type Locatable = LocatedPiece | Square | SquareName | SquareSet;
 
 function colouredSet(white: SquareSet, black: SquareSet, chosen?: Color) {
     if (!chosen) return white.union(black);
     return chosen == "white" ? white : black;
+}
+
+export function squareSetOf(locations: Locatable[]) {
+    let result = SquareSet.empty();
+
+    for (const location of locations) {
+        if (typeof location == "number") {
+            result = result.with(location);
+            continue;
+        }
+
+        if (typeof location == "string") {
+            result = result.with(parseSquare(location));
+            continue;
+        }
+
+        if (location instanceof SquareSet) {
+            result = result.union(location);
+            continue;
+        }
+
+        result = result.with(location.square);
+    }
+
+    return result;
 }
 
 export function rank(rank: number, colour: Color = "white") {

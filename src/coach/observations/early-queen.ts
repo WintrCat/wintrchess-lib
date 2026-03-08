@@ -11,10 +11,10 @@ export const earlyQueen: Observation = (ctx, lastCtx) => {
         ? (evaluateExchange(
             lastCtx.move.lastPosition,
             lastCtx.move.captured.square
-        ) < -1)
+        ).evaluation < -1)
         : (
             !!ctx.move.captured
-            && evaluateExchange(ctx.position, ctx.move.to) > 1
+            && evaluateExchange(ctx.position, ctx.move.to).evaluation > 1
         );
     if (freePieceTaken) return null;
 

@@ -34,7 +34,7 @@ export const pins: Observation = ctx => {
 
         const hangingPieceBehind = newAttacks.find(newAttack => (
             newAttack.captured.role == "king"
-            || evaluateExchange(position, newAttack.to) > 1
+            || evaluateExchange(position, newAttack.to).evaluation > 1
         ))?.captured;
 
         position.board.set(attack.to, victim);

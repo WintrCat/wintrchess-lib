@@ -119,7 +119,7 @@ export class Coach {
         const node: AssessmentNode = {
             parent: nodeOpts?.parentNode,
             children: [],
-            isSource: nodeOpts?.isSource || true,
+            isSource: nodeOpts?.isSource ?? true,
             context: contexts.current,
             statements: statements
         };

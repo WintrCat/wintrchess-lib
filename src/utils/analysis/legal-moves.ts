@@ -32,7 +32,7 @@ export function unfoldMove(
     position: Chess,
     move: Omit<NormalMove, "promotion">
 ) {
-    const ctxMove = contextualizeMove(position, move);
+    const ctxMove = contextualizeMove(position, move, false);
 
     return isPromotion(position, move)
         ? PROMOTABLE_ROLES.map(promotion => ({ ...ctxMove, promotion }))

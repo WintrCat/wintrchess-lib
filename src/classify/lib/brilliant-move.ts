@@ -7,7 +7,8 @@ import {
     getHangingPieces,
     getLegalMoves,
     withMove,
-    isPieceTrapped
+    isPieceTrapped,
+    squareSetOf
 } from "@/utils";
 import { ParsedNode, PreviousParsedNode } from "../types/ParsedNode";
 import { isMoveImportant } from "./important-move";
@@ -39,15 +40,19 @@ export function isMoveBrilliant(
 
     // Moving a piece to safety cannot be brilliant, even if there are
     // other hanging pieces. This covers moving away from a fork
-    const piecesOptions: HangingPiecesOptions = {
+    const currentHangingOptions: HangingPiecesOptions = {
         includedPieces: current.position.board[prev.position.turn],
         minimumMaterialGain: 2
     };
 
-    const prevHanging = getHangingPieces(prev.position, piecesOptions);
+    const prevHanging = getHangingPieces(prev.position, {
+        includedPieces: prev.position.board[prev.position.turn],
+        minimumMaterialGain: 2
+    });
 
     const hanging = getHangingPieces(current.position, {
-        ...piecesOptions, move: current.move
+        ...currentHangingOptions,
+        move: current.move
     });
     
     if (hanging.length < prevHanging.length)
@@ -56,20 +61,21 @@ export function isMoveBrilliant(
     // If total amount of material threatened by mover is equal or greater
     // than that threatened by the opponent, danger levels & not brilliant
     const opponentHanging = getHangingPieces(current.position, {
-        ...piecesOptions,
-        includedPieces: current.position.board[current.position.turn]
+        minimumMaterialGain: 2,
+        includedPieces: current.position.board[current.position.turn],
+        excludedCapturers: squareSetOf(hanging)
     });
 
-    // no move provided, because danger levels only deals with threats
-    // that exist after the move has been played
+    // danger levels should not have move context; hanging pieces with
+    // move context has already been considered earlier
     const statelessHanging = getHangingPieces(
-        current.position, piecesOptions
+        current.position, currentHangingOptions
     );
 
     if (
-        sumBy(opponentHanging, piece => piece.exchange)
-        >= sumBy(statelessHanging, piece => piece.exchange)
-    ) return log("hanging opponent material >= yours");
+        sumBy(opponentHanging, piece => piece.exchange.evaluation)
+        >= sumBy(statelessHanging, piece => piece.exchange.evaluation)
+    ) return log("threatened opponent material >= yours");
 
     // If taking any of the mover's hanging pieces all allow mate in 1,
     // this move is not awesome enough for brilliant!

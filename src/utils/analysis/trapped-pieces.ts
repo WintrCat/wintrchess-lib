@@ -2,8 +2,9 @@ import { Chess, Square } from "chessops";
 import { sumBy } from "es-toolkit";
 
 import { ExchangeOptions, HangingPiecesOptions } from "../types/exchanges";
-import { getHangingPieces, isHanging } from "./attacks";
+import { getHangingPieces, isHanging } from "./exchanges";
 import { getLegalMoves, withMove } from "./legal-moves";
+import { makeSan } from "chessops/san";
 
 export interface TrappedPieceOptions extends ExchangeOptions {
     /**
@@ -35,15 +36,15 @@ export function isPieceTrapped(
 
     // If moving the piece increases the total material hanging for the
     // mover, it's still trapped even if it has a safe square to go to.
-    const mateCheck = opts?.mateCheck || true;
-    const hangingOptions: HangingPiecesOptions = {
-        ...opts,
-        includedPieces: position.board[piece.color]
-    };
+    // this covers when moving it reveals an attack on a piece behind.
+    const mateCheck = opts?.mateCheck ?? true;
 
     const currentHanging = sumBy(
-        getHangingPieces(position, hangingOptions),
-        piece => piece.exchange
+        getHangingPieces(position, {
+            ...opts,
+            includedPieces: position.board[piece.color]
+        }),
+        piece => piece.exchange.evaluation
     );
 
     return getLegalMoves(position, square).every(move => {
@@ -55,8 +56,12 @@ export function isPieceTrapped(
         if (allowsMate) return true;
 
         const newHanging = sumBy(
-            getHangingPieces(escapePosition, { ...hangingOptions, move }),
-            piece => piece.exchange
+            getHangingPieces(escapePosition, {
+                ...opts,
+                includedPieces: escapePosition.board[piece.color],
+                move: move
+            }),
+            piece => piece.exchange.evaluation
         );
         
         return newHanging >= currentHanging;
