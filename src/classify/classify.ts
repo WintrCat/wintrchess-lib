@@ -37,10 +37,7 @@ export function wplClassify(
     return "blunder";
 }
 
-/**
- * Returns a classification for a given node. Does not edit
- * the given move object in-place.
- */
+/** Returns a classification for a given move. */
 export function classify(opts: ClassifyArgs): Classification {
     const { previous: prevCtx, current: ctx } = createClassifyContexts(opts);
 
