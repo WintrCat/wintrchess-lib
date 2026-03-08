@@ -1,7 +1,7 @@
 import { makeUci, moveEquals } from "chessops/util";
 
 import { isHanging } from "@/utils";
-import { getWinPercentLoss } from "@/engine";
+import { evaluationAs, getWinPercentLoss } from "@/engine";
 import { ParsedNode, PreviousParsedNode } from "../types/ParsedNode";
 import { isMoveImportant } from "./important-move";
 
@@ -36,8 +36,8 @@ export function isMoveCritical(
     // If difference between top and second top is over 10% WPL
     // 10% loss is in between an inaccuracy and mistake
     const secondTopWinPercentLoss = getWinPercentLoss(
-        prev.top.sidedEvaluation,
-        prev.secondTop.sidedEvaluation
+        evaluationAs(prev.top.evaluation, prev.position.turn),
+        evaluationAs(prev.secondTop.evaluation, prev.position.turn)
     );
 
     log(`WPL between top and 2nd top move: ${secondTopWinPercentLoss}`);

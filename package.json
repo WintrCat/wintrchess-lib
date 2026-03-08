@@ -39,7 +39,8 @@
 		}
 	},
 	"scripts": {
-		"build": "vite build"
+		"build": "vite build",
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@openrouter/sdk": "^0.9.11",

@@ -107,7 +107,7 @@ export function isMoveBrilliant(
         || trappedPieces.length < prevTrappedPieces.length
     ) return log(
         "all hanging pieces are trapped, or there are less"
-        + " hanging pieces than in the last position."
+        + " trapped pieces than in the last position."
     );
 
     // If the moved piece was trapped (desperado), not brilliant

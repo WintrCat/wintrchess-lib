@@ -1,10 +1,9 @@
 import { Chess, Square } from "chessops";
 import { sumBy } from "es-toolkit";
 
-import { ExchangeOptions, HangingPiecesOptions } from "../types/exchanges";
+import { ExchangeOptions } from "../types/exchanges";
 import { getHangingPieces, isHanging } from "./exchanges";
 import { getLegalMoves, withMove } from "./legal-moves";
-import { makeSan } from "chessops/san";
 
 export interface TrappedPieceOptions extends ExchangeOptions {
     /**

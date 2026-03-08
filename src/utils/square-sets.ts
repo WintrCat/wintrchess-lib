@@ -15,10 +15,19 @@ function colouredSet(white: SquareSet, black: SquareSet, chosen?: Color) {
     return chosen == "white" ? white : black;
 }
 
-export function squareSetOf(locations: Locatable[]) {
+/**
+ * Construct a square set from any locatable thing, list thereof,
+ * or from other square sets.
+ * 
+ * @example
+ * squareSetOf("a3", "a4");
+ * squareSetOf(SquareSet.backranks(), SquareSet.center(), "b6");
+ * squareSetOf("a3", 46, [someLocatedPiece, SquareSet.center()]);
+ */
+export function squareSetOf(...locations: (Locatable | Locatable[])[]) {
     let result = SquareSet.empty();
 
-    for (const location of locations) {
+    for (const location of locations.flat()) {
         if (typeof location == "number") {
             result = result.with(location);
             continue;

@@ -36,7 +36,7 @@ export interface ExchangeOptions {
      */
     forceFirst?: boolean;
     /** Override the default piece values. */
-    pieceValueOverrides?: Omit<PieceValues, "king">;
+    pieceValueOverrides?: Partial<Omit<PieceValues, "king">>;
     /** Pieces that are not allowed to capture on the exchange square. */
     excludedCapturers?: SquareSet;
 }
