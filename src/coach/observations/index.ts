@@ -8,6 +8,7 @@ import { pawnBreaks } from "./vision/pawn-breaks";
 import { pins } from "./vision/pins";
 import { scope } from "./vision/scope";
 
+import { classification } from "./classification";
 import { gameStages } from "./game-stages";
 import { pieceDevelopment } from "./piece-development";
 import { earlyQueen } from "./early-queen";
@@ -23,6 +24,7 @@ export const DEFAULT_OBSERVATIONS: Observation[] = [
     scope,
 
     // Generic
+    classification,
     gameStages,
     pieceDevelopment,
     earlyQueen

@@ -1,10 +1,10 @@
 import { Chess } from "chessops";
 
-import { AnalysedMove, ContextualCapture } from "@/types";
+import { ClassifiedMove, ContextualCapture } from "@/types";
 import { EngineLine } from "@/engine";
 import { GameStage } from "@/utils";
 
-export type AssessmentMoveContext = AnalysedMove & {
+export type AssessmentMoveContext = ClassifiedMove & {
     /** The position before this move was played. */
     lastPosition: Chess;
     /** Capturing moves the moved piece can now make. */

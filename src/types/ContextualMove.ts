@@ -20,9 +20,9 @@ export interface ContextualCapture extends ContextualMove {
     captured: LocatedPiece;
 }
 
-export interface AnalysedMove extends ContextualMove {
+export interface ClassifiedMove extends ContextualMove {
     /** e.g. `brilliant`, `blunder`, `theory` etc. */
-    classification?: Classification;
+    classification: Classification;
 }
 
 /** Contextualize a move given a position and the move applied to it. */

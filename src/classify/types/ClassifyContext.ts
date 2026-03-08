@@ -1,13 +1,13 @@
 import { Chess } from "chessops"
 
-import { AnalysedMove, ContextualMove } from "@/types"
+import { ContextualMove } from "@/types"
 import { EngineLine, Evaluation } from "@/engine"
 
 export interface ClassifyContext {
     /** The position of the analysis node. */
     position: Chess;
     /** The move that has just been played in this position. */
-    move: AnalysedMove;
+    move: ContextualMove;
     /** The Win% loss that `move` incurred. */
     winPercentLoss: number;
     /** Information on the top engine line in this position. */

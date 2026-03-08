@@ -17,6 +17,7 @@ import { AssessmentNode } from "./types/assessment/node";
 import { ExplanationOptions } from "./types/ExplanationOptions";
 import { buildPrompt } from "./lib/prompt";
 import { DEFAULT_OBSERVATIONS } from "./observations";
+import { classify } from "@/classify";
 
 export class Coach {
     engine: Engine;
@@ -25,6 +26,8 @@ export class Coach {
     constructor(opts: CoachOptions) {
         this.engine = opts.engine;
         this.llm = new OpenAI(opts.llm);
+
+        this.engine.setOption("MultiPV", 2);
     }
 
     /**
@@ -34,7 +37,7 @@ export class Coach {
      */
     async getAssessmentContext(
         opts: Omit<AssessmentOptions, "observations">,
-        lastContext?: AssessmentContext
+        lastContextCache?: AssessmentContext
     ): Promise<AssessmentContextResult> {
         // Get engine lines
         this.engine.setPosition(opts.position);
@@ -47,18 +50,19 @@ export class Coach {
                 engineLines: lines,
                 stage: getGameStage(opts.position.board)
             },
-            last: opts.move && lastContext
+            last: opts.move && lastContextCache
         };
 
-        // Get move context, maybe requiring calculation of last context
+        // Generate a last context if a cache is not provided
         if (!opts.move) return contexts;
         const lastPosition = beforeMove(opts.position, opts.move);
-
+        
         contexts.last ??= (await this.getAssessmentContext({
             evaluations: opts.evaluations,
             position: lastPosition
         })).current;
-
+        
+        // Get move related context, comparing with the last context
         const lastEvaluation = getEvaluation(contexts.last.engineLines);
         const evaluation = getEvaluation(lines);
         if (!lastEvaluation || !evaluation)
@@ -70,7 +74,15 @@ export class Coach {
             lastAttackMoves: getAttackMoves(
                 lastPosition, opts.move.from
             ),
-            attackMoves: getAttackMoves(opts.position, opts.move.to)
+            attackMoves: getAttackMoves(opts.position, opts.move.to),
+            classification: classify({
+                position: lastPosition,
+                move: opts.move,
+                engineLines: {
+                    current: lines,
+                    previous: contexts.last.engineLines
+                }
+            })
         };
 
         return contexts;
@@ -87,41 +99,27 @@ export class Coach {
             parentNode?: AssessmentNode;
         }
     ): Promise<AssessmentNode> {
-        const startTime = performance.now();
-        if (opts.logs) console.log(
-            `assessing ${makeFen(opts.position.toSetup())}`
-        );
+        const log = (msg: string) => opts.logs && console.log(msg);
 
+        const startTime = performance.now();
+        log(`assessing ${makeFen(opts.position.toSetup())}`);
+
+        // Generate required context for observations
         const contexts = await this.getAssessmentContext(
             opts, nodeOpts?.parentNode?.context
         );
 
-        if (opts.logs) console.log(
-            "generated current context"
-            + (nodeOpts?.parentNode?.context ? "." : " and last context.")
-        );
+        log("generated current context" + (
+            nodeOpts?.parentNode?.context ? "." : " and last context."
+        ));
 
-        const observations = opts.observations || DEFAULT_OBSERVATIONS;
-        const results = observations.map(async (obs, index) => {
-            const result = await obs(contexts.current, contexts.last);
-
-            if (opts.logs) console.log(
-                `executed ${++index} of ${observations.length} `
-                + `observations: ${JSON.stringify(result)}`
-            );
-
-            return result;
-        });
-
-        const statements = (await Promise.all(results))
-            .filter(res => res != null).flat();
-
+        // Construct node objects with these contexts
         const node: AssessmentNode = {
             parent: nodeOpts?.parentNode,
             children: [],
             isSource: nodeOpts?.isSource ?? true,
             context: contexts.current,
-            statements: statements
+            statements: []
         };
 
         node.parent ??= contexts.last && {
@@ -130,11 +128,26 @@ export class Coach {
             context: contexts.last,
             statements: []
         };
-        
+
+        // Execute observations and apply statements to node
+        const observations = opts.observations || DEFAULT_OBSERVATIONS;
+        const results = observations.map(async (obs, index) => {
+            const result = await obs(contexts.current, contexts.last);
+
+            log(
+                `executed ${++index} of ${observations.length} `
+                + `observations: ${JSON.stringify(result)}`
+            );
+
+            return result;
+        });
+
+        node.statements = (await Promise.all(results))
+            .filter(res => res != null).flat();
+
+        // Report time elapsed and finalise
         const elapsed = (performance.now() - startTime) / 1000;
-        if (opts.logs) console.log(
-            `assessement complete (${elapsed.toFixed(3)}s)`
-        );
+        log(`assessement complete (${elapsed.toFixed(3)}s)`);
 
         return node;
     }
@@ -155,9 +168,11 @@ export class Coach {
         rootNode: AssessmentNode,
         opts: ExplanationOptions
     ) {
+        const log = (msg: string) => opts.logs && console.log(msg);
+
         const startTime = performance.now();
 
-        if (opts.logs) console.log([
+        log([
             "generating explanation for root node",
             `\tposition: ${makeFen(rootNode.context.position.toSetup())}`,
             `\tmodel: ${opts.model}`,
@@ -175,14 +190,12 @@ export class Coach {
 
         const explanation = completion.choices[0];
         if (!explanation) {
-            if (opts.logs) console.log("failed to generate explanation");
+            log("failed to generate explanation");
             throw new Error("failed to generate explanation.");
         }
 
         const elapsed = (performance.now() - startTime) / 1000;
-        if (opts.logs) console.log(
-            `successfully generated explanation (${elapsed.toFixed(3)}s)`
-        );
+        log(`successfully generated explanation (${elapsed.toFixed(3)}s)`);
 
         return explanation.message.content || "";
     }

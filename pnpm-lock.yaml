@@ -11,9 +11,6 @@ importers:
       '@openrouter/sdk':
         specifier: ^0.9.11
         version: 0.9.11
-      chalk:
-        specifier: ^5.6.2
-        version: 5.6.2
       chessops:
         specifier: ^0.15.0
         version: 0.15.0
@@ -484,10 +481,6 @@ packages:
   chai@6.2.2:
     resolution: {integrity: sha512-NUPRluOfOiTKBKvWPtSD4PhFvWCqOi0BGStNWs57X9js7XGTprSmFoz5F0tWhR4WPjNeR9jXqdC7/UpSJTnlRg==}
     engines: {node: '>=18'}
-
-  chalk@5.6.2:
-    resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
-    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   chessops@0.15.0:
     resolution: {integrity: sha512-4Ps0O8/UO09tDGbze1mMilUSMZjVYMFtQvrhlCQV385cO0BgdUPUZsq/r1Qrf6UQ4J0i7XcMbRRvFRKu+Ith1w==}
@@ -1264,8 +1257,6 @@ snapshots:
   assertion-error@2.0.1: {}
 
   chai@6.2.2: {}
-
-  chalk@5.6.2: {}
 
   chessops@0.15.0:
     dependencies:
