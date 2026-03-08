@@ -1,5 +1,8 @@
 import { getWinPercent } from "@/engine";
-import { ParsedNode, PreviousParsedNode } from "../types/ParsedNode";
+import {
+    ClassifyContext,
+    PreviousClassifyContext
+} from "../types/ClassifyContext";
 
 const WINNING_WP = getWinPercent({ type: "cp", value: 700 });
 
@@ -8,8 +11,8 @@ const WINNING_WP = getWinPercent({ type: "cp", value: 700 });
  * easy to find, such that it can qualify for `critical` or `brilliant`.
  */
 export function isMoveImportant(
-    prev: PreviousParsedNode,
-    current: ParsedNode
+    prev: PreviousClassifyContext,
+    current: ClassifyContext
 ) {
     // Moves required to escape check cannot be important
     // Opponent can give a check first, then take a promoted piece on the

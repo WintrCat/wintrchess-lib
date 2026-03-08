@@ -1,28 +1,16 @@
 import { makeBoardFen } from "chessops/fen";
 import { makeUci, moveEquals } from "chessops/util";
 
-import { AnalysisNode } from "@/types";
 import { hasLegalMoveCount, openings } from "@/utils";
+import { ClassifyArgs, ClassifyOptions } from "./types/ClassifyOptions";
 import {
     Classification,
     WPLClassification,
     WPL_CLASSIFICATIONS
 } from "./types/Classification";
-import { parseAnalysisNode } from "./lib/parse-node";
+import { createClassifyContexts } from "./lib/classify-context";
 import { isMoveBrilliant } from "./lib/brilliant-move";
 import { isMoveCritical } from "./lib/critical-move";
-
-export interface ClassifyOptions {
-    /** Which classifications to exclude from the result. */
-    exclude?: Set<Classification>;
-    /**
-     * The Win% loss thresholds for Win% loss based classifications.
-     * Defaults to those on [WintrChess](https://wintrchess.com).
-     */
-    wplThresholds?: Partial<Record<WPLClassification, number>>;
-    /** Whether to output debug logs through `console.log`. */
-    logs?: boolean;
-}
 
 /** Classify a move based only on Win% loss. */
 export function wplClassify(
@@ -53,15 +41,8 @@ export function wplClassify(
  * Returns a classification for a given node. Does not edit
  * the given move object in-place.
  */
-export function classify(
-    node: AnalysisNode,
-    opts?: ClassifyOptions
-): Classification {
-    if (!node.parent)
-        throw new Error("node must have a parent to compare win% with.");
-
-    const ctx = parseAnalysisNode(node, "current");
-    const prevCtx = parseAnalysisNode(node.parent, "previous");
+export function classify(opts: ClassifyArgs): Classification {
+    const { previous: prevCtx, current: ctx } = createClassifyContexts(opts);
 
     if (opts?.logs) {
         console.log(`current eval: ${JSON.stringify(ctx.top.evaluation)}`);

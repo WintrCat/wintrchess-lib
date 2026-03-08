@@ -2,7 +2,10 @@ import { makeUci, moveEquals } from "chessops/util";
 
 import { isHanging } from "@/utils";
 import { evaluationAs, getWinPercentLoss } from "@/engine";
-import { ParsedNode, PreviousParsedNode } from "../types/ParsedNode";
+import {
+    ClassifyContext,
+    PreviousClassifyContext
+} from "../types/ClassifyContext";
 import { isMoveImportant } from "./important-move";
 
 /**
@@ -10,8 +13,8 @@ import { isMoveImportant } from "./important-move";
  * previous and current parsed analysis node.
  */
 export function isMoveCritical(
-    prev: PreviousParsedNode,
-    current: ParsedNode,
+    prev: PreviousClassifyContext,
+    current: ClassifyContext,
     logs = false
 ) {
     const log = (msg: string) => {

@@ -10,7 +10,10 @@ import {
     isPieceTrapped,
     squareSetOf
 } from "@/utils";
-import { ParsedNode, PreviousParsedNode } from "../types/ParsedNode";
+import {
+    ClassifyContext,
+    PreviousClassifyContext
+} from "../types/ClassifyContext";
 import { isMoveImportant } from "./important-move";
 
 /**
@@ -18,8 +21,8 @@ import { isMoveImportant } from "./important-move";
  * previous and current parsed analysis node.
  */
 export function isMoveBrilliant(
-    prev: PreviousParsedNode,
-    current: ParsedNode,
+    prev: PreviousClassifyContext,
+    current: ClassifyContext,
     logs = false
 ) {
     const log = (msg: string) => {

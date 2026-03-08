@@ -1,14 +1,9 @@
 import { expect, test } from "vitest";
 import { NormalMove } from "chessops";
-import { makeFen } from "chessops/fen";
 import { parseSan } from "chessops/san";
 
-import {
-    AnalysisNode,
-    contextualizeMove,
-    defaultAnalysisNode
-} from "@/types";
-import { chessFromFen, withMove } from "@/utils";
+import { contextualizeMove } from "@/types";
+import { chessFromFen } from "@/utils";
 import { classify } from "@/classify";
 import { EngineCache, samples } from "./samples";
 
@@ -22,23 +17,12 @@ async function classifyTest(
         position,
         parseSan(position, moveSan) as NormalMove
     );
-    
-    const parent: AnalysisNode = {
-        ...defaultAnalysisNode(),
-        fen: fen,
-        engineLines: lines.previous
-    };
 
-    const node: AnalysisNode = {
-        ...defaultAnalysisNode(),
-        parent: parent,
-        fen: makeFen(withMove(position, move).toSetup()),
+    return classify({
+        position: position,
         move: move,
-        engineLines: lines.current
-    };
-    parent.children.push(node);
-
-    return classify(node);
+        engineLines: lines
+    });
 }
 
 for (const { fen, moveSan, expected, lines } of samples) {

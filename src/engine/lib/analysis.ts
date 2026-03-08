@@ -3,7 +3,10 @@ import { Color } from "chessops";
 import { EngineLine } from "../types/EngineLine";
 import { Evaluation } from "../types/Evaluation";
 
-/** Returns the highest depth line of index 1. */
+/**
+ * Returns the highest depth line of the given index, 
+ * or 1 if it is not provided.
+ */
 export function getTopLine(lines: EngineLine[], index = 1) {
     let top: EngineLine | undefined;
     

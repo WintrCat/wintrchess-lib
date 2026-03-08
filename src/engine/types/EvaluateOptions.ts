@@ -6,4 +6,4 @@ export interface EvaluateOptions {
     onUpdate?: (lines: EngineLine[]) => void;
 }
 
-export const DEFAULT_ENGINE_DEPTH = 16;
+export const DEFAULT_DEPTH = 16;

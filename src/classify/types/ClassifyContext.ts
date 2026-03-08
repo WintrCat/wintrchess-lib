@@ -3,11 +3,9 @@ import { Chess } from "chessops"
 import { AnalysedMove, ContextualMove } from "@/types"
 import { EngineLine, Evaluation } from "@/engine"
 
-export interface ParsedNode {
+export interface ClassifyContext {
     /** The position of the analysis node. */
     position: Chess;
-    /** The FEN string of `position`. */
-    fen: string;
     /** The move that has just been played in this position. */
     move: AnalysedMove;
     /** The Win% loss that `move` incurred. */
@@ -28,6 +26,6 @@ export interface ParsedNode {
     };
 }
 
-export type PreviousParsedNode = (
-    Omit<ParsedNode, "move" | "winPercentLoss">
+export type PreviousClassifyContext = (
+    Omit<ClassifyContext, "move" | "winPercentLoss">
 );

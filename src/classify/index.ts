@@ -1,8 +1,8 @@
 export * from "./classify";
 
+export * from "./types/ClassifyOptions";
 export * from "./types/Classification";
-export * from "./types/ParsedNode";
+export * from "./types/ClassifyContext";
 
-export * from "./lib/parse-node";
 export * from "./lib/critical-move";
 export * from "./lib/brilliant-move";

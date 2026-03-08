@@ -1,11 +1,10 @@
 import { Chess, NormalMove, parseUci, makeUci } from "chessops";
 import { makeFen, parseFen } from "chessops/fen";
 
-import {
-    DEFAULT_ENGINE_DEPTH,
-    EvaluateOptions
-} from "./types/EvaluateOptions";
+import { contextualizeMove } from "@/types";
+import { withMove } from "@/utils";
 import { EngineLine } from "./types/EngineLine";
+import { DEFAULT_DEPTH, EvaluateOptions } from "./types/EvaluateOptions";
 import { UCICommand, UCIOption, UCIValue } from "./types/uci";
 import {
     parseScore,
@@ -202,7 +201,12 @@ export abstract class Engine {
                 log, "score", "(?:cp|mate) -?\\d+"
             ));
             const moves = (log.match(/(?<= pv ).+/)?.[0].split(" ")
-                .map(uci => parseUci(uci) as NormalMove | undefined)
+                .map((uci, index, arr) => contextualizeMove(
+                    withMove(currentPosition, arr.slice(0, index)
+                        .map(uci => parseUci(uci) as NormalMove)
+                    ),
+                    parseUci(uci) as NormalMove
+                ))
                 .filter(move => move != undefined)
             ) || [];
 
@@ -228,7 +232,7 @@ export abstract class Engine {
         };
 
         const args = makeUCIArguments({
-            depth: options?.depth || DEFAULT_ENGINE_DEPTH,
+            depth: options?.depth || DEFAULT_DEPTH,
             movetime: options?.timeLimit
         });
 
