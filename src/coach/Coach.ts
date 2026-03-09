@@ -1,9 +1,10 @@
 import { OpenAI } from "openai";
 import { makeFen } from "chessops/fen";
 
-import { Engine, getEvaluation } from "@/engine";
-import { getAttackMoves, getGameStage } from "@/utils";
 import { beforeMove } from "@/types";
+import { getAttackMoves, getGameStage } from "@/utils";
+import { Engine, getEvaluation } from "@/engine";
+import { classify } from "@/classify";
 import { CoachOptions } from "./types/CoachOptions";
 import {
     AssessmentContext,
@@ -14,10 +15,13 @@ import {
     RecursiveAssessmentOptions
 } from "./types/assessment/options";
 import { AssessmentNode } from "./types/assessment/node";
-import { ExplanationOptions } from "./types/ExplanationOptions";
-import { buildPrompt } from "./lib/prompt";
+import {
+    ExplanationOptions,
+    RawResponseExplanationOptions
+} from "./types/ExplanationOptions";
+import { buildSystemPrompt, buildUserPrompt } from "./lib/prompt";
+import { ExplanationToken, tokenizeExplanation } from "./lib/explanation";
 import { DEFAULT_OBSERVATIONS } from "./observations";
-import { classify } from "@/classify";
 
 export class Coach {
     engine: Engine;
@@ -164,12 +168,11 @@ export class Coach {
     }
 
     /** Given an assessment, generate a natural language explanation. */
-    async createExplanation(
+    async createExplanation<Opts extends ExplanationOptions>(
         rootNode: AssessmentNode,
-        opts: ExplanationOptions
+        opts: Opts
     ) {
         const log = (msg: string) => opts.logs && console.log(msg);
-
         const startTime = performance.now();
 
         log([
@@ -182,13 +185,16 @@ export class Coach {
         const completion = await this.llm.chat.completions.create({
             model: opts.model,
             messages: [{
+                role: "system",
+                content: buildSystemPrompt(opts)
+            }, {
                 role: "user",
-                content: buildPrompt(rootNode, opts)
+                content: buildUserPrompt(rootNode)
             }],
             temperature: opts.temperature || 1
         });
 
-        const explanation = completion.choices[0];
+        const explanation = completion.choices[0]?.message.content || "";
         if (!explanation) {
             log("failed to generate explanation");
             throw new Error("failed to generate explanation.");
@@ -197,6 +203,12 @@ export class Coach {
         const elapsed = (performance.now() - startTime) / 1000;
         log(`successfully generated explanation (${elapsed.toFixed(3)}s)`);
 
-        return explanation.message.content || "";
+        type Result = Opts extends RawResponseExplanationOptions
+            ? string : ExplanationToken[];
+
+        return (opts.rawResponse
+            ? explanation
+            : tokenizeExplanation(explanation)
+        ) as Result;
     }
 }

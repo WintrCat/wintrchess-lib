@@ -3,7 +3,7 @@ import { parseSquare, Square, SquareSet } from "chessops";
 import { LocatedPiece } from "@/types";
 import { isDevelopingMove, isUndevelopingMove, edgeFiles } from "@/utils";
 import { Observation } from "../types/assessment/observation";
-import { pieceLabel } from "../lib/names";
+import { pieceLabel } from "../lib/labels";
 
 const knightStarts: Record<Square, Square> = {
     [parseSquare("c3")]: parseSquare("b1"),

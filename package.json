@@ -50,12 +50,12 @@
 		"openai": "^6.17.0"
 	},
 	"devDependencies": {
-		"@microsoft/api-extractor": "^7.55.2",
-		"es-toolkit": "^1.43.0",
-		"openai": "^6.17.0",
+		"@microsoft/api-extractor": "^7.57.6",
+		"es-toolkit": "^1.45.1",
+		"openai": "^6.27.0",
 		"unplugin-dts": "1.0.0-beta.6",
-		"vite": "^7.3.0",
-		"vite-tsconfig-paths": "^6.0.3",
+		"vite": "^7.3.1",
+		"vite-tsconfig-paths": "^6.1.1",
 		"vitest": "^4.0.18"
 	},
 	"files": [
