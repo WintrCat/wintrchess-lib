@@ -26,7 +26,7 @@ function extractLines(moveColour: Color, lines: EngineLine[]) {
     const secondTopLine = getTopLine(lines, 2);
     const secondTopMove = secondTopLine?.moves.at(0);
 
-    if (!topLine || !topMove || !secondTopLine || !secondTopMove)
+    if (!topLine || !topMove)
         throw new Error("insufficient engine lines provided.");
 
     return {
@@ -39,7 +39,7 @@ function extractLines(moveColour: Color, lines: EngineLine[]) {
                 moveColour
             )
         },
-        secondTop: {
+        secondTop: secondTopLine && secondTopMove && {
             line: secondTopLine,
             move: secondTopMove,
             evaluation: secondTopLine.evaluation,

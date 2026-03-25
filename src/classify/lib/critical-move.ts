@@ -24,6 +24,9 @@ export function isMoveCritical(
 
     log(`testing ${makeUci(current.move)} for critical...`);
 
+    if (!prev.secondTop)
+        return log("too few engine lines to detect critical.");
+
     if (!isMoveImportant(prev, current))
         return log("move was not considered important");
 

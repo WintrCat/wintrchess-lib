@@ -18,7 +18,7 @@ export interface ClassifyContext {
         sidedEvaluation: Evaluation
     };
     /** Information on the second top engine line in this position. */
-    secondTop: {
+    secondTop?: {
         line: EngineLine,
         move: ContextualMove,
         evaluation: Evaluation,

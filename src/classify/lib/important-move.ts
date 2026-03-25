@@ -28,8 +28,10 @@ export function isMoveImportant(
         return false;
 
     // If it's still winning even if move had not been found
-    if (getWinPercent(prev.secondTop.sidedEvaluation) >= WINNING_WP)
-        return false;
+    const winningAnyways = prev.secondTop
+        && getWinPercent(prev.secondTop.sidedEvaluation) >= WINNING_WP;
+        
+    if (winningAnyways) return false;
 
     return true;
 }

@@ -27,11 +27,9 @@ const systemPromptTemplate = `
 
 const promptPersonComments: Record<PromptPerson, string> = {
     first: "Give your response from the first grammatical person, "
-        + "as if the move played in this position was yours, and as "
-        + "if you are the player facing the current position.",
+        + "as if the move played in this position was yours.",
     second: "Give your response from the second grammatical person, "
-        + "as if the move played in this position was mine, and as "
-        + "if I (the user) am the player facing the current position."
+        + "as if the move played in this position was mine."
         + "You MUST NOT ever say that my opponent or \"Your opponent\" "
         + "was the one that played the move.",
     third: "Give your response from the third grammatical person, "

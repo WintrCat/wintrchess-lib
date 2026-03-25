@@ -27,7 +27,7 @@ export function parsePieceLabel(label: string) {
     if (!parts) return;
 
     const role = parts[0] as Role | undefined;
-    if (!role) return;
+    if (!role || !ROLES.includes(role)) return;
 
     const square = parts[1] ? parseSquare(parts[1]) : undefined;
     if (square == undefined) return;
