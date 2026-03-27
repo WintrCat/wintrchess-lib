@@ -6,6 +6,8 @@ export default defineConfig({
     build: {
         lib: {
             entry: {
+                index: "./src/index.ts",
+                
                 engine: "./src/engine/index.ts",
                 nodeEngine: "./src/engine/ProcessEngine.ts",
                 
