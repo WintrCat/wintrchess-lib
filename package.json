@@ -1,10 +1,10 @@
 {
 	"type": "module",
 	"name": "wintrchess",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"author": "wintrcat",
 	"license": "AGPL-3.0-only",
-	"description": "TypeScript chess tools for game analysis and explanations.",
+	"description": "TypeScript chess tools for analysis, explanations etc.",
 	"keywords": [
 		"chess",
 		"analysis",
@@ -12,11 +12,8 @@
 		"fen",
 		"pgn"
 	],
+	"types": "./dist/index.d.ts",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		},
 		"./classify": {
 			"types": "./dist/classify.d.ts",
 			"import": "./dist/classify.js"
