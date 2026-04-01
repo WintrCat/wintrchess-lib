@@ -7,6 +7,7 @@ export const CLASSIFICATIONS = [
     "inaccuracy",
     "mistake",
     "blunder",
+    "miss",
     "theory",
     "forced",
     "risky"

@@ -10,6 +10,7 @@ const CLASSIF_DESCRIPTIONS: Record<Classification, string> = {
     inaccuracy: "an inaccuracy",
     mistake: "a mistake",
     blunder: "a blunder",
+    miss: "a missed win",
     theory: "theory",
     forced: "forced (the only legal move in the position)",
     risky: "risky (good empirical winrates, but objectively bad)"

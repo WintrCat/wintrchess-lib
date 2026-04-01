@@ -4,7 +4,7 @@ import { ContextualMove } from "@/types"
 import { EngineLine, Evaluation } from "@/engine"
 
 export interface ClassifyContext {
-    /** The position of the analysis node. */
+    /** The position of the context. */
     position: Chess;
     /** The move that has just been played in this position. */
     move: ContextualMove;
@@ -28,4 +28,11 @@ export interface ClassifyContext {
 
 export type PreviousClassifyContext = (
     Omit<ClassifyContext, "move" | "winPercentLoss">
+    & {
+        /**
+         * The Win% loss of the opponent's move that was played
+         * just before the current context's move.
+         */
+        winPercentLoss?: number
+    }
 );

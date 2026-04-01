@@ -3,7 +3,7 @@ import { Chess, NormalMove } from "chessops";
 import { EngineLine } from "@/engine";
 import { Classification, WPLClassification } from "./Classification";
 
-export interface ClassifyOptions {
+export interface WPLClassifyOptions {
     /** Which classifications to exclude from the result. */
     exclude?: Set<Classification>;
     /**
@@ -15,7 +15,7 @@ export interface ClassifyOptions {
     logs?: boolean;
 }
 
-export interface ClassifyContextOptions {
+export interface ClassifyOptions extends WPLClassifyOptions {
     /** Position before the move being classified was played. */
     position: Chess;
     /** The move to be classified. */
@@ -26,7 +26,10 @@ export interface ClassifyContextOptions {
         previous: EngineLine[];
         /** The engine lines on the position after `move` is played. */
         current: EngineLine[];
-    }
+    },
+    /**
+     * The Win% loss of the opponent's move before `move`. Needed for
+     * stateful classifications like the Miss.
+     */
+    lastWinPercentLoss?: number;
 }
-
-export type ClassifyArgs = ClassifyOptions & ClassifyContextOptions;

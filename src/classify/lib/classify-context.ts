@@ -11,7 +11,7 @@ import {
 import {
     ClassifyContext,
     PreviousClassifyContext,
-    ClassifyContextOptions
+    ClassifyOptions
 } from "@/classify";
 
 interface ClassifyContexts {
@@ -25,6 +25,10 @@ function extractLines(moveColour: Color, lines: EngineLine[]) {
 
     const secondTopLine = getTopLine(lines, 2);
     const secondTopMove = secondTopLine?.moves.at(0);
+
+    // TO-DO: pick the top lines that are closest in depth to the
+    // ones chosen from the previous lines. an extra argument will
+    // be required to provide the last depth.
 
     if (!topLine || !topMove)
         throw new Error("insufficient engine lines provided.");
@@ -56,7 +60,7 @@ function extractLines(moveColour: Color, lines: EngineLine[]) {
  * Throws errors if insufficient information is provided.
  */
 export function createClassifyContexts(
-    opts: ClassifyContextOptions
+    opts: ClassifyOptions
 ): ClassifyContexts {
     const move = contextualizeMove(opts.position, opts.move);
 
@@ -73,6 +77,7 @@ export function createClassifyContexts(
     return {
         previous: {
             position: opts.position,
+            winPercentLoss: opts.lastWinPercentLoss,
             ...prevLines
         },
         current: {

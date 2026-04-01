@@ -13,8 +13,8 @@ import {
 import {
     ClassifyContext,
     PreviousClassifyContext
-} from "../types/ClassifyContext";
-import { isMoveImportant } from "./important-move";
+} from "@/classify/types/ClassifyContext";
+import { isMoveImportant } from "../important-move";
 
 /**
  * Returns whether a move can be classified as `brilliant`, given a

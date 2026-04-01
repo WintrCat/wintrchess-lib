@@ -5,8 +5,8 @@ import { evaluationAs, getWinPercentLoss } from "@/engine";
 import {
     ClassifyContext,
     PreviousClassifyContext
-} from "../types/ClassifyContext";
-import { isMoveImportant } from "./important-move";
+} from "@/classify/types/ClassifyContext";
+import { isMoveImportant } from "../important-move";
 
 /**
  * Returns whether a move can be classified as `critical`, given a
@@ -39,8 +39,8 @@ export function isMoveCritical(
         && isHanging(prev.position, current.move.captured.square)
     ) return log("the move was a capture of free material");
 
-    // If difference between top and second top is over 10% WPL
-    // 10% loss is in between an inaccuracy and mistake
+    // If difference between top and second top is >= 8.5% WPL
+    // 8.5% loss is in between an inaccuracy and mistake
     const secondTopWinPercentLoss = getWinPercentLoss(
         evaluationAs(prev.top.evaluation, prev.position.turn),
         evaluationAs(prev.secondTop.evaluation, prev.position.turn)
@@ -48,5 +48,5 @@ export function isMoveCritical(
 
     log(`WPL between top and 2nd top move: ${secondTopWinPercentLoss}`);
 
-    return secondTopWinPercentLoss >= 0.1;
+    return secondTopWinPercentLoss >= 0.085;
 }

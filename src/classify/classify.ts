@@ -2,43 +2,16 @@ import { makeBoardFen } from "chessops/fen";
 import { makeUci, moveEquals } from "chessops/util";
 
 import { hasLegalMoveCount, openings } from "@/utils";
-import { ClassifyArgs, ClassifyOptions } from "./types/ClassifyOptions";
-import {
-    Classification,
-    WPLClassification,
-    WPL_CLASSIFICATIONS
-} from "./types/Classification";
+import { ClassifyOptions } from "./types/ClassifyOptions";
+import { Classification, WPL_CLASSIFICATIONS } from "./types/Classification";
 import { createClassifyContexts } from "./lib/classify-context";
-import { isMoveBrilliant } from "./lib/brilliant-move";
-import { isMoveCritical } from "./lib/critical-move";
-
-/** Classify a move based only on Win% loss. */
-export function wplClassify(
-    winPercentLoss: number,
-    opts?: ClassifyOptions
-): WPLClassification {
-    const thresholds: Record<WPLClassification, number> = {
-        best: 0.01,
-        excellent: 0.045,
-        okay: 0.08,
-        inaccuracy: 0.12,
-        mistake: 0.22,
-        blunder: 1,
-        ...opts?.wplThresholds
-    };
-
-    for (const classifKey in thresholds) {
-        const classif = classifKey as WPLClassification;
-
-        if (opts?.exclude?.has(classif)) continue;
-        if (winPercentLoss < thresholds[classif]) return classif;
-    }
-
-    return "blunder";
-}
+import { wplClassify } from "./lib/wpl-classify";
+import { isMoveMiss } from "./lib/classifications/miss-move";
+import { isMoveBrilliant } from "./lib/classifications/brilliant-move";
+import { isMoveCritical } from "./lib/classifications/critical-move";
 
 /** Returns a classification for a given move. */
-export function classify(opts: ClassifyArgs): Classification {
+export function classify(opts: ClassifyOptions): Classification {
     const { previous: prevCtx, current: ctx } = createClassifyContexts(opts);
 
     if (opts?.logs) {
@@ -61,6 +34,11 @@ export function classify(opts: ClassifyArgs): Classification {
         !opts?.exclude?.has("theory")
         && openings[makeBoardFen(ctx.position.board)]
     ) return "theory";
+
+    if (
+        !opts.exclude?.has("miss")
+        && isMoveMiss(prevCtx, ctx, opts.wplThresholds?.inaccuracy)
+    ) return "miss";
 
     const wplClassification = moveEquals(prevCtx.top.move, ctx.move)
         ? "best" : wplClassify(ctx.winPercentLoss, opts);
