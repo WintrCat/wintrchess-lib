@@ -1,5 +1,8 @@
 import { WPLClassifyOptions } from "../types/ClassifyOptions";
-import { WPLClassification } from "../types/Classification";
+import {
+    WPLClassification,
+    WPL_CLASSIFICATIONS
+} from "../types/Classification";
 
 export const DEFAULT_WPL_THRESHOLDS: Record<WPLClassification, number> = {
     best: 0.01,
@@ -20,12 +23,25 @@ export function wplClassify(
         ...opts?.wplThresholds
     };
 
-    for (const classifKey in thresholds) {
-        const classif = classifKey as WPLClassification;
+    let fallback: WPLClassification | undefined;
 
+    for (let i = WPL_CLASSIFICATIONS.length - 1; i >= 0; i -= 1) {
+        const classif = WPL_CLASSIFICATIONS[i]!;
         if (opts?.exclude?.has(classif)) continue;
-        if (winPercentLoss < thresholds[classif]) return classif;
+
+        fallback = classif;
+        break;
     }
 
-    return "blunder";
+    if (!fallback)
+        throw new Error("cannot exclude all WPL classifications.");
+
+    const loss = Math.max(0, winPercentLoss);
+
+    for (const classif of WPL_CLASSIFICATIONS) {
+        if (opts?.exclude?.has(classif)) continue;
+        if (loss < thresholds[classif]) return classif;
+    }
+
+    return fallback;
 }
