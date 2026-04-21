@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "wintrchess",
-	"version": "1.2.2",
+	"version": "1.2.3",
 	"author": "wintrcat",
 	"license": "AGPL-3.0-only",
 	"description": "TypeScript chess tools for analysis, explanations etc.",
@@ -12,6 +12,10 @@
 		"fen",
 		"pgn"
 	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/wintrcat/wintrchess-lib.git"
+	},
 	"types": "./dist/index.d.ts",
 	"exports": {
 		"./classify": {
