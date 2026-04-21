@@ -1,8 +1,7 @@
 import { Chess, Square } from "chessops";
-import { sumBy } from "es-toolkit";
 
 import { ExchangeOptions } from "../types/exchanges";
-import { getHangingPieces, isHanging } from "./exchanges";
+import { evaluateExchange } from "./exchanges";
 import { getLegalMoves, withMove } from "./legal-moves";
 
 export interface TrappedPieceOptions extends ExchangeOptions {
@@ -31,38 +30,29 @@ export function isPieceTrapped(
     position = position.clone();
     position.turn = piece.color;
 
-    if (!isHanging(position, square, opts)) return false;
+    // Get amount of material to be gained by taking trapped piece
+    // to ensure that it is at least hanging
+    const currentExchange = evaluateExchange(position, square, opts);
+    if (currentExchange.evaluation == 0) return false;
 
-    // If moving the piece increases the total material hanging for the
-    // mover, it's still trapped even if it has a safe square to go to.
-    // this covers when moving it reveals an attack on a piece behind.
     const mateCheck = opts?.mateCheck ?? true;
 
-    const currentHanging = sumBy(
-        getHangingPieces(position, {
-            ...opts,
-            includedPieces: position.board[piece.color]
-        }),
-        piece => piece.exchange.evaluation
-    );
-
+    // Check that all legal moves still leave it hanging
     return getLegalMoves(position, square).every(move => {
         const escapePosition = withMove(position, move);
 
+        // if moving it allows opponent mate, trapped
         const allowsMate = mateCheck && getLegalMoves(position).some(
             response => withMove(escapePosition, response).isCheckmate()
         );
         if (allowsMate) return true;
 
-        const newHanging = sumBy(
-            getHangingPieces(escapePosition, {
-                ...opts,
-                includedPieces: escapePosition.board[piece.color],
-                move: move
-            }),
-            piece => piece.exchange.evaluation
+        const newExchange = evaluateExchange(
+            escapePosition, move.to, { ...opts, move }
         );
         
-        return newHanging >= currentHanging;
+        // if the new exchange is over 0, then it still loses some
+        // of the piece's material to make this escape move
+        return newExchange.evaluation > 0;
     });
 }

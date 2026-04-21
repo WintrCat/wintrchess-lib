@@ -21,7 +21,8 @@ async function classifyTest({
 
     return classify({
         position, move, lastWinPercentLoss,
-        engineLines: lines
+        engineLines: lines,
+        logs: true
     });
 }
 
