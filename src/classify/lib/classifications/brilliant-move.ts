@@ -17,17 +17,19 @@ import {
 import { isMoveImportant } from "../important-move";
 
 /**
- * Returns whether a move can be classified as `brilliant`, given a
- * previous and current parsed analysis node.
+ * Returns a list of hanging pieces that the existence of which can classify
+ * this move as `brilliant`, given a previous and current classify context.
+ * Note that this does not take into account the engine's opinion of the
+ * move; you must make your own check for whether this is the top move etc.
  */
-export function isMoveBrilliant(
+export function evaluateBrilliantMove(
     prev: PreviousClassifyContext,
     current: ClassifyContext,
     logs = false
 ) {
     const log = (msg: string) => {
         if (logs) console.log(msg);
-        return false;
+        return [];
     };
 
     log(`testing ${makeUci(current.move)} for brilliant...`);
@@ -124,5 +126,17 @@ export function isMoveBrilliant(
     log(`identified ${hanging.length} hanging piece(s):`);
     log(hanging.map(piece => makeSquare(piece.square)).join(", "));
 
-    return hanging.length > 0;
+    return hanging;
+}
+
+/**
+ * Returns whether or not a move can be classified as brilliant, given
+ * a previous and current classify context. Note that this does not take
+ * into account the engine's opinion of the move; you must make your own
+ * check for whether this is the top move etc.
+ */
+export function isMoveBrilliant(
+    ...args: Parameters<typeof evaluateBrilliantMove>
+) {
+    return evaluateBrilliantMove(...args).length > 0;
 }
