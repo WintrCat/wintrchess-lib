@@ -56,9 +56,7 @@ export function evaluateExchange(
         capturers.push({ ...lvaMove.piece, square: lvaMove.from });
 
         const value = pieceValues[move?.promotion ? "pawn" : victim.role]
-            - ((root && move?.to == square)
-                ? pieceValues[move.captured.role] : 0
-            )
+            - ((root && move) ? pieceValues[move.captured.role] : 0)
             - see(lvaMove.to, lvaMove, false);
 
         const forceFirstCapture = opts?.forceFirst ?? true;

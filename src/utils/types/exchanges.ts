@@ -27,7 +27,9 @@ export interface ExchangeOptions {
      * If the move that has just been played in this position is known,
      * it can be used as helpful context. Pieces that have just been
      * promoted are considered worth a pawn, and the existing capture is
-     * accounted for when evaluating the exchange.
+     * accounted for when evaluating the exchange. For example, a knight
+     * somewhere on the board will not be considered hanging if you have
+     * just taken something of equal or greater value somewhere else.
      */
     move?: ContextualMove;
     /**

@@ -45,18 +45,14 @@ export function evaluateBrilliantMove(
 
     // Moving a piece to safety cannot be brilliant, even if there are
     // other hanging pieces. This covers moving away from a fork
-    const currentHangingOptions: HangingPiecesOptions = {
-        includedPieces: current.position.board[prev.position.turn],
-        minimumMaterialGain: 2
-    };
-
     const prevHanging = getHangingPieces(prev.position, {
         includedPieces: prev.position.board[prev.position.turn],
         minimumMaterialGain: 2
     });
 
     const hanging = getHangingPieces(current.position, {
-        ...currentHangingOptions,
+        includedPieces: current.position.board[prev.position.turn],
+        minimumMaterialGain: 2,
         move: current.move
     });
     
@@ -71,16 +67,14 @@ export function evaluateBrilliantMove(
         excludedCapturers: squareSetOf(hanging)
     });
 
-    // danger levels should not have move context; hanging pieces with
-    // move context has already been considered earlier
-    const statelessHanging = getHangingPieces(
-        current.position, currentHangingOptions
-    );
+    const moverSum = sumBy(hanging, piece => piece.exchange.evaluation);
+    const oppSum = sumBy(opponentHanging, piece => piece.exchange.evaluation);
 
-    if (
-        sumBy(opponentHanging, piece => piece.exchange.evaluation)
-        >= sumBy(statelessHanging, piece => piece.exchange.evaluation)
-    ) return log("threatened opponent material >= yours");
+    log(`material that mover is hanging: ${moverSum}`);
+    log(`material that opponent is hanging: ${oppSum}`);
+
+    if (oppSum >= moverSum)
+        return log("threatened opponent material >= yours");
 
     // If taking any of the mover's hanging pieces all allow mate in 1,
     // this move is not awesome enough for brilliant!
