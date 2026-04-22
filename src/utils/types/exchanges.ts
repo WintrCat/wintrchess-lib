@@ -62,10 +62,10 @@ export interface HangingPiecesOptions extends ExchangeOptions {
     /** Select group of pieces to check. */
     includedPieces?: SquareSet;
     /**
-     * The minimum amount of material gain achieved by capturing a
-     * piece for it to be considered hanging. Defaults to `1`.
+     * The minimum amount of material that must be losable to
+     * consider a piece hanging. Defaults to `1`.
      */
-    minimumMaterialGain?: number;
+    minimumMaterialLoss?: number;
 }
 
 export interface HangingPiece extends LocatedPiece {

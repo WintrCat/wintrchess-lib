@@ -47,6 +47,28 @@ const samples: Sample[] = [
             chessFromFen("1k5q/1ppbr1b1/p1np1nB1/P3p1Br/1P2P2p/N1PPQP1P/4N1P1/R4RK1 b - - 0 1"),
             parseUci("h5g5") as NormalMove
         )
+    },
+    {
+        fen: "8/1p4k1/p1nQ1r1p/3P2p1/1P2p3/P1B1P2b/1KP3q1/8 b - - 1 31",
+        square: "f6",
+        expected: true
+    },
+    {
+        fen: "1k1r2nr/N1pb2pp/1p1p4/P2Pn3/4qp2/2Q1B3/1PP1B1PP/R5KR w - - 1 17",
+        square: "e3",
+        expected: true
+    },
+    {
+        fen: "1k1r2nr/N1pb2pp/1p1p4/P2Pn3/4qp2/2Q1B3/1PP1B1PP/R5KR w - - 1 17",
+        square: "e3",
+        expected: false,
+        transitiveAttackCheck: false
+    },
+    {
+        fen: "1k1r2nr/N1pb2pp/1p1p4/P2Pn3/4qp2/2Q1B3/1PP1B1PP/R5KR w - - 1 17",
+        square: "e3",
+        expected: false,
+        minimumMaterialLoss: 4
     }
 ];
 

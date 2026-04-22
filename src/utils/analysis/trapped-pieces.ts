@@ -1,23 +1,40 @@
 import { Chess, Square } from "chessops";
 
 import { ExchangeOptions } from "../types/exchanges";
-import { evaluateExchange } from "./exchanges";
+import { getHangingPieces } from "./exchanges";
 import { getLegalMoves, withMove } from "./legal-moves";
+import { squareSetOf } from "../square-sets";
 
 export interface TrappedPieceOptions extends ExchangeOptions {
     /**
      * Whether to check if moves that a potentially trapped piece can
-     * make allow a checkmate from the opponent. If they do, then the
-     * piece may be considered trapped, even if it is able to move to
-     * a safe square. Defaults to `true`.
+     * make would reveal an attack on another piece behind it. For those
+     * that do, the escape square can be considered unsafe even if
+     * the original piece is, at least itself, safe. Defaults to `true`.
+     */
+    transitiveAttackCheck?: boolean;
+    /**
+     * Whether to check if moves that a potentially trapped piece can
+     * make allow a checkmate from the opponent. For those that do,
+     * the escape square can be considered unsafe even if the original
+     * piece is, at least itself, safe. Defaults to `true`.
      */
     mateCheck?: boolean;
+    /**
+     * The minimum amount of material that must be losable to consider
+     * a piece hanging, either on its current square or any squares it
+     * may attempt to escape to. This same rule applies for pieces
+     * whose attacks are revealed after an escape square is attempted.
+     */
+    minimumMaterialLoss?: number;
 }
 
 /**
- * Returns whether the piece on `square`, if any, is trapped. As in, it
- * is currently hanging, and any move it can make would hang the same
- * amount or more material.
+ * Returns whether the piece on `square`, if any, is trapped. Trapped pieces
+ * must be hanging on their current square. Each legal move it has will then
+ * be checked to ensure that any escape square it can go to would still
+ * render it hanging. You can also use the options to configure what
+ * criteria must be met to consider an escape square unsafe.
  */
 export function isPieceTrapped(
     position: Chess,
@@ -30,29 +47,40 @@ export function isPieceTrapped(
     position = position.clone();
     position.turn = piece.color;
 
-    // Get amount of material to be gained by taking trapped piece
-    // to ensure that it is at least hanging
-    const currentExchange = evaluateExchange(position, square, opts);
-    if (currentExchange.evaluation == 0) return false;
-
+    // defaults for options
+    const transitiveAttackCheck = opts?.transitiveAttackCheck ?? true;
     const mateCheck = opts?.mateCheck ?? true;
+    const minimumMaterialLoss = opts?.minimumMaterialLoss || 2;
 
-    // Check that all legal moves still leave it hanging
+    const currentHanging = squareSetOf(
+        getHangingPieces(position, {
+            ...opts,
+            includedPieces: position.board[piece.color],
+            minimumMaterialLoss: minimumMaterialLoss
+        })
+    );
+    if (!currentHanging.has(square)) return false;
+
     return getLegalMoves(position, square).every(move => {
         const escapePosition = withMove(position, move);
 
-        // if moving it allows opponent mate, trapped
+        // do mate check if configured
         const allowsMate = mateCheck && getLegalMoves(position).some(
             response => withMove(escapePosition, response).isCheckmate()
         );
         if (allowsMate) return true;
 
-        const newExchange = evaluateExchange(
-            escapePosition, move.to, { ...opts, move }
+        // calculate hanging pieces that exist because of the escape
+        const afterHanging = getHangingPieces(escapePosition, {
+            ...opts,
+            includedPieces: escapePosition.board[piece.color],
+            minimumMaterialLoss: minimumMaterialLoss,
+            move: move
+        });
+
+        return afterHanging.some(piece => transitiveAttackCheck
+            ? !currentHanging.has(piece.square)
+            : piece.square == move.to
         );
-        
-        // if the new exchange is over 0, then it still loses some
-        // of the piece's material to make this escape move
-        return newExchange.evaluation > 0;
     });
 }

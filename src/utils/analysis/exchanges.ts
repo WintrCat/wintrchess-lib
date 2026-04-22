@@ -1,4 +1,4 @@
-import { Chess, Square, SquareSet } from "chessops";
+import { Chess, makeSquare, Square, SquareSet } from "chessops";
 import { minBy } from "es-toolkit";
 
 import { ContextualCapture } from "@/types";
@@ -89,11 +89,11 @@ export function getHangingPieces(
     opts?: HangingPiecesOptions
 ) {
     const included = opts?.includedPieces || position.board.occupied;
-    const minimumMaterialGain = opts?.minimumMaterialGain || 1;
+    const minimumMaterialLoss = opts?.minimumMaterialLoss || 1;
 
     return [...included].reduce((pieces, square) => {
         const exchange = evaluateExchange(position, square, opts);
-        if (exchange.evaluation < minimumMaterialGain) return pieces;
+        if (exchange.evaluation < minimumMaterialLoss) return pieces;
 
         const piece = position.board.get(square);
         if (!piece) return pieces;

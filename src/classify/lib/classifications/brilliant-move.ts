@@ -47,12 +47,12 @@ export function evaluateBrilliantMove(
     // other hanging pieces. This covers moving away from a fork
     const prevHanging = getHangingPieces(prev.position, {
         includedPieces: prev.position.board[prev.position.turn],
-        minimumMaterialGain: 2
+        minimumMaterialLoss: 2
     });
 
     const hanging = getHangingPieces(current.position, {
         includedPieces: current.position.board[prev.position.turn],
-        minimumMaterialGain: 2,
+        minimumMaterialLoss: 2,
         move: current.move
     });
     
@@ -62,7 +62,7 @@ export function evaluateBrilliantMove(
     // If total amount of material threatened by mover is equal or greater
     // than that threatened by the opponent, danger levels & not brilliant
     const opponentHanging = getHangingPieces(current.position, {
-        minimumMaterialGain: 2,
+        minimumMaterialLoss: 2,
         includedPieces: current.position.board[current.position.turn],
         excludedCapturers: squareSetOf(hanging)
     });

@@ -123,3 +123,16 @@ test((
 
     expect(exchange.evaluation).toBe(-4);
 });
+
+test((
+    "7r/p2k2b1/npBn2pp/8/3P4/2N5/PPP2PPP/R1B1R1K1 b - - 0 21 > "
+    + "in check with no enforce legal, 1 pt. to be won on d4"
+), ({ task }) => {
+    const position = chessFromFen(task.name.split(" > ")[0]!);
+
+    expect(evaluateExchange(
+        position,
+        parseSquare("d4"),
+        { enforceLegal: false }
+    ).evaluation).toBe(1);
+});
