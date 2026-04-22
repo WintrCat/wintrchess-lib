@@ -1,6 +1,6 @@
 import { Role, SquareSet } from "chessops";
 
-import { ContextualMove, LocatedPiece } from "@/types";
+import { ContextualCapture, ContextualMove, LocatedPiece } from "@/types";
 
 export type PieceValues = Record<Role, number>;
 
@@ -39,18 +39,23 @@ export interface ExchangeOptions {
     forceFirst?: boolean;
     /** Override the default piece values. */
     pieceValueOverrides?: Partial<Omit<PieceValues, "king">>;
-    /** Pieces that are not allowed to capture on the exchange square. */
-    excludedCapturers?: SquareSet;
+    /**
+     * Pieces that are not allowed to capture on the exchange square.
+     * Can be given as a square set or as a function of depth (the
+     * number of captures that have already been made as part of the
+     * exchange).
+     */
+    excludedCapturers?: SquareSet | ((depth: number) => SquareSet);
 }
 
 export interface ExchangeResult {
     /**
-     * The amount of material won after exchanging at least once with the
-     * least valuable attacker. A negative number denotes material loss.
+     * The amount of material won after exchanging or choosing to stand
+     * pat. A negative number denotes material loss.
      */
     evaluation: number;
-    /** The pieces that captured on the exchange square at some point. */
-    capturers: LocatedPiece[];
+    /** The capturing moves made while evaluating the exchange, in order. */
+    captures: ContextualCapture[];
 }
 
 export interface HangingPiecesOptions extends ExchangeOptions {

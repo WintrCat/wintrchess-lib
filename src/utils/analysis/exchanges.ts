@@ -1,7 +1,7 @@
-import { Chess, Square } from "chessops";
+import { Chess, Square, SquareSet } from "chessops";
 import { minBy } from "es-toolkit";
 
-import { LocatedPiece, ContextualCapture } from "@/types";
+import { ContextualCapture } from "@/types";
 import {
     ExchangeOptions,
     ExchangeResult,
@@ -22,9 +22,9 @@ export const PIECE_VALUES: PieceValues = {
 
 /**
  * Returns the amount of material to be won by exchanging on a given square
- * at least once with the least valuable attacker. Where the piece on
- * `square` may be captured by en passant, the exchange square may move to
- * the destination of the en passant move.
+ * with the least valuable attacker, or standing pat. Where `square` may be
+ * captured by en passant, the exchange square may move to the destination
+ * of the en passant move.
  */
 export function evaluateExchange(
     position: Chess,
@@ -34,33 +34,36 @@ export function evaluateExchange(
     position = position.clone();
 
     const pieceValues = { ...PIECE_VALUES, ...opts?.pieceValueOverrides };
-    const capturers: LocatedPiece[] = [];
+    const captures: ContextualCapture[] = [];
 
     const see = (
         square: Square,
         move?: ContextualCapture,
-        root = true
+        depth = 0
     ): number => {
         const victim = position.board.get(square);
         if (!victim) return 0;
 
+        const excluded = opts?.excludedCapturers instanceof SquareSet
+            ? opts.excludedCapturers : opts?.excludedCapturers?.(depth);
+
         const lvaMove = minBy(
             getAttackerMoves(position, square, {
                 enforceLegal: opts?.enforceLegal
-            }).filter(move => !opts?.excludedCapturers?.has(move.from)),
+            }).filter(move => !excluded?.has(move.from)),
             move => pieceValues[move.piece.role]
         );
         if (!lvaMove) return 0;
 
         position.play(lvaMove);
-        capturers.push({ ...lvaMove.piece, square: lvaMove.from });
+        captures.push(lvaMove);
 
         const value = pieceValues[move?.promotion ? "pawn" : victim.role]
-            - ((root && move) ? pieceValues[move.captured.role] : 0)
-            - see(lvaMove.to, lvaMove, false);
+            - ((depth == 0 && move) ? pieceValues[move.captured.role] : 0)
+            - see(lvaMove.to, lvaMove, depth + 1);
 
-        const forceFirstCapture = opts?.forceFirst ?? true;
-        return (root && forceFirstCapture) ? value : Math.max(0, value);
+        return (depth == 0 && (opts?.forceFirst ?? true))
+            ? value : Math.max(0, value);
     };
 
     const existingCapture = opts?.move?.captured
@@ -68,7 +71,7 @@ export function evaluateExchange(
     
     return {
         evaluation: see(square, existingCapture),
-        capturers: capturers
+        captures: captures
     };
 }
 
