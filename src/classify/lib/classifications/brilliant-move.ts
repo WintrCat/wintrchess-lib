@@ -1,14 +1,11 @@
 import { makeSquare, makeUci } from "chessops";
-import { sumBy } from "es-toolkit";
 
 import {
-    HangingPiecesOptions,
     getAttackerMoves,
     getHangingPieces,
     getLegalMoves,
     withMove,
-    isPieceTrapped,
-    squareSetOf
+    isPieceTrapped
 } from "@/utils";
 import {
     ClassifyContext,
@@ -45,36 +42,38 @@ export function evaluateBrilliantMove(
 
     // Moving a piece to safety cannot be brilliant, even if there are
     // other hanging pieces. This covers moving away from a fork
-    const prevHanging = getHangingPieces(prev.position, {
-        includedPieces: prev.position.board[prev.position.turn],
-        minimumMaterialLoss: 2
-    });
-
     const hanging = getHangingPieces(current.position, {
         includedPieces: current.position.board[prev.position.turn],
         minimumMaterialLoss: 2,
         move: current.move
-    });
+    }).toArray();
+    if (hanging.length == 0) return log("no pieces hanging");
+
+    const prevHanging = getHangingPieces(prev.position, {
+        includedPieces: prev.position.board[prev.position.turn],
+        minimumMaterialLoss: 2
+    }).toArray();    
     
     if (hanging.length < prevHanging.length)
         return log("less hanging pieces than before");
 
-    // If total amount of material threatened by mover is equal or greater
-    // than that threatened by the opponent, danger levels & not brilliant
-    const opponentHanging = getHangingPieces(current.position, {
-        minimumMaterialLoss: 2,
-        includedPieces: current.position.board[current.position.turn],
-        excludedCapturers: squareSetOf(hanging)
-    });
+    // if taking one of your sacrificed pieces creates a greater or equal
+    // threat for the taker, then the move is not brilliant.
+    const dangerLevels = hanging.every(sacked => (
+        sacked.exchange.initialAttackerMoves.every(attack => {
+            const attackPosition = withMove(current.position, attack);
 
-    const moverSum = sumBy(hanging, piece => piece.exchange.evaluation);
-    const oppSum = sumBy(opponentHanging, piece => piece.exchange.evaluation);
+            return getHangingPieces(attackPosition, {
+                minimumMaterialLoss: sacked.exchange.evaluation,
+                includedPieces: attackPosition.board[attack.piece.color]
+            }).take(1).toArray().length > 0;
+        })
+    ));
 
-    log(`material that mover is hanging: ${moverSum}`);
-    log(`material that opponent is hanging: ${oppSum}`);
-
-    if (oppSum >= moverSum)
-        return log("threatened opponent material >= yours");
+    if (dangerLevels) return log(
+        "taking any of your hanging pieces"
+        + " sacrifices >= for your opponent."
+    );
 
     // If taking any of the mover's hanging pieces all allow mate in 1,
     // this move is not awesome enough for brilliant!

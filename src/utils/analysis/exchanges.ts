@@ -1,4 +1,4 @@
-import { Chess, makeSquare, Square, SquareSet } from "chessops";
+import { Chess, Square, SquareSet } from "chessops";
 import { minBy } from "es-toolkit";
 
 import { ContextualCapture } from "@/types";
@@ -36,6 +36,8 @@ export function evaluateExchange(
     const pieceValues = { ...PIECE_VALUES, ...opts?.pieceValueOverrides };
     const captures: ContextualCapture[] = [];
 
+    let initialAttackerMoves: ContextualCapture[] | undefined;
+
     const see = (
         square: Square,
         move?: ContextualCapture,
@@ -47,12 +49,15 @@ export function evaluateExchange(
         const excluded = opts?.excludedCapturers instanceof SquareSet
             ? opts.excludedCapturers : opts?.excludedCapturers?.(depth);
 
-        const lvaMove = minBy(
-            getAttackerMoves(position, square, {
-                enforceLegal: opts?.enforceLegal
-            }).filter(move => !excluded?.has(move.from)),
-            move => pieceValues[move.piece.role]
-        );
+        // capture on the exchange square with the LVA
+        const capturingMoves = getAttackerMoves(position, square, {
+            enforceLegal: opts?.enforceLegal
+        }).filter(move => !excluded?.has(move.from));
+        initialAttackerMoves ??= capturingMoves;
+
+        const lvaMove = minBy(capturingMoves, move => (
+            pieceValues[move.piece.role]
+        ));
         if (!lvaMove) return 0;
 
         position.play(lvaMove);
@@ -71,33 +76,34 @@ export function evaluateExchange(
     
     return {
         evaluation: see(square, existingCapture),
-        captures: captures
+        captures: captures,
+        initialAttackerMoves: initialAttackerMoves || []
     };
 }
 
 /**
- * Returns whether the opponent can exchange on this square at least
- * once for a material gain of at least 1.
+ * Returns whether the opponent can exchange on this square
+ * for a material gain of at least 1.
  */
 export function isHanging(...args: Parameters<typeof evaluateExchange>) {
     return evaluateExchange(...args).evaluation > 0;
 }
 
-/** Returns hanging pieces on a board. */
-export function getHangingPieces(
+/** Finds and yields hanging pieces on a board. */
+export function* getHangingPieces(
     position: Chess,
     opts?: HangingPiecesOptions
-) {
+): Generator<HangingPiece> {
     const included = opts?.includedPieces || position.board.occupied;
     const minimumMaterialLoss = opts?.minimumMaterialLoss || 1;
 
-    return [...included].reduce((pieces, square) => {
+    for (const square of included) {
         const exchange = evaluateExchange(position, square, opts);
-        if (exchange.evaluation < minimumMaterialLoss) return pieces;
+        if (exchange.evaluation < minimumMaterialLoss) continue;
 
         const piece = position.board.get(square);
-        if (!piece) return pieces;
+        if (!piece) continue;
 
-        return [...pieces, { ...piece, square, exchange }];
-    }, [] as HangingPiece[]);
+        yield { ...piece, square, exchange };
+    }
 }

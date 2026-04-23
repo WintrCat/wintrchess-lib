@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "wintrchess",
-	"version": "1.2.7",
+	"version": "1.2.8",
 	"author": "wintrcat",
 	"license": "AGPL-3.0-only",
 	"description": "TypeScript chess tools for analysis, explanations etc.",

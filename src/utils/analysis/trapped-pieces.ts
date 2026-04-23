@@ -57,7 +57,7 @@ export function isPieceTrapped(
             ...opts,
             includedPieces: position.board[piece.color],
             minimumMaterialLoss: minimumMaterialLoss
-        })
+        }).toArray()
     );
     if (!currentHanging.has(square)) return false;
 

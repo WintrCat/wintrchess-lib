@@ -56,6 +56,11 @@ export interface ExchangeResult {
     evaluation: number;
     /** The capturing moves made while evaluating the exchange, in order. */
     captures: ContextualCapture[];
+    /**
+     * All of the captures that could have been made as the first move
+     * of the exchange. The lowest valuable piece will be chosen from this.
+     */
+    initialAttackerMoves: ContextualCapture[];
 }
 
 export interface HangingPiecesOptions extends ExchangeOptions {
