@@ -63,8 +63,11 @@ export function evaluateBrilliantMove(
         sacked.exchange.initialAttackerMoves.every(attack => {
             const attackPosition = withMove(current.position, attack);
 
+            // opp losing a pawn less but >= 2 is still danger levels
             return getHangingPieces(attackPosition, {
-                minimumMaterialLoss: sacked.exchange.evaluation,
+                minimumMaterialLoss: Math.max(
+                    2, sacked.exchange.evaluation - 1
+                ),
                 includedPieces: attackPosition.board[attack.piece.color]
             }).take(1).toArray().length > 0;
         })
