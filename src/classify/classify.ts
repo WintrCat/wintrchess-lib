@@ -2,6 +2,10 @@ import { makeBoardFen } from "chessops/fen";
 import { makeUci, moveEquals } from "chessops/util";
 
 import { hasLegalMoveCount, openings } from "@/utils";
+import {
+    ClassifyContext,
+    PreviousClassifyContext
+} from "./types/ClassifyContext";
 import { ClassifyOptions } from "./types/ClassifyOptions";
 import { Classification, WPL_CLASSIFICATIONS } from "./types/Classification";
 import { createClassifyContexts } from "./lib/classify-context";
@@ -9,6 +13,25 @@ import { wplClassify } from "./lib/wpl-classify";
 import { isMoveMiss } from "./lib/classifications/miss-move";
 import { isMoveBrilliant } from "./lib/classifications/brilliant-move";
 import { isMoveCritical } from "./lib/classifications/critical-move";
+
+// Classify for mate to mate evaluations (in favour of the same side)
+// Moves that get further away from mate should still not get best.
+function mateToMateClassify(
+    prevCtx: PreviousClassifyContext,
+    ctx: ClassifyContext
+): Classification | undefined {
+    const prevEval = prevCtx.top.evaluation;
+    const currEval = ctx.top.evaluation;
+
+    if (
+        prevEval.type != "mate"
+        || currEval.type != "mate"
+        || Math.sign(prevEval.value) != Math.sign(currEval.value)
+    ) return;
+
+    return Math.abs(currEval.value) >= Math.abs(prevEval.value)
+        ? "excellent" : "best";
+}
 
 /** Returns a classification for a given move. */
 export function classify(opts: ClassifyOptions): Classification {
@@ -41,7 +64,11 @@ export function classify(opts: ClassifyOptions): Classification {
     ) return "miss";
 
     const wplClassification = moveEquals(prevCtx.top.move, ctx.move)
-        ? "best" : wplClassify(ctx.winPercentLoss, opts);
+        ? "best"
+        : (
+            mateToMateClassify(prevCtx, ctx)
+            || wplClassify(ctx.winPercentLoss, opts)
+        );
 
     if (wplClassification == "best") {
         if (isMoveBrilliant(prevCtx, ctx, opts?.logs)) return "brilliant";

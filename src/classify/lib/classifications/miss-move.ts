@@ -11,7 +11,7 @@ import { DEFAULT_WPL_THRESHOLDS } from "../wpl-classify";
  * at least 70% of the advantage gained by said mistake. By default,
  * the threshold is the default one for an inaccuracy. If the move loses
  * way more than just that advantage (more than 140% of the advantage
- * is lost), a move will not be considered a miss).
+ * is lost), a move will not be considered a miss.
  */
 export function isMoveMiss(
     prev: PreviousClassifyContext,
