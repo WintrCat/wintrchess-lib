@@ -1,7 +1,7 @@
 import { makeSquare, makeUci } from "chessops";
+import { sumBy } from "es-toolkit";
 
 import {
-    getAttackerMoves,
     getHangingPieces,
     getLegalMoves,
     withMove,
@@ -52,16 +52,23 @@ export function evaluateBrilliantMove(
     const prevHanging = getHangingPieces(prev.position, {
         includedPieces: prev.position.board[prev.position.turn],
         minimumMaterialLoss: 2
-    }).toArray();    
-    
-    if (hanging.length < prevHanging.length)
-        return log("less hanging pieces than before");
+    }).toArray();
+
+    if (
+        sumBy(hanging, piece => piece.exchange.evaluation)
+        < sumBy(prevHanging, piece => piece.exchange.evaluation)
+    ) return log("less hanging material than before");
 
     // if taking one of your sacrificed pieces creates a greater or equal
-    // threat for the taker, then the move is not brilliant.
+    // threat for the taker (or mate in 1), then the move is not brilliant.
     const dangerLevels = hanging.every(sacked => (
         sacked.exchange.initialAttackerMoves.every(attack => {
             const attackPosition = withMove(current.position, attack);
+
+            const allowsMate = getLegalMoves(attackPosition).some(
+                res => withMove(attackPosition, res).isCheckmate()
+            );
+            if (allowsMate) return true;
 
             // opp losing a pawn less but >= 2 is still danger levels
             return getHangingPieces(attackPosition, {
@@ -74,50 +81,26 @@ export function evaluateBrilliantMove(
     ));
 
     if (dangerLevels) return log(
-        "taking any of your hanging pieces"
-        + " sacrifices >= for your opponent."
-    );
-
-    // If taking any of the mover's hanging pieces all allow mate in 1,
-    // this move is not awesome enough for brilliant!
-    const allCapturesAllowMate = hanging.every(piece => (
-        getAttackerMoves(current.position, piece.square).every(move => {
-            const position = withMove(current.position, move);
-
-            return getLegalMoves(position).some(response => (
-                withMove(position, response).isCheckmate()
-            ));
-        })
-    ));
-
-    if (allCapturesAllowMate)
-        return log("any capture of your hanging pieces allows mate");
-
-    // If all the mover's hanging pieces are trapped anyway, not brilliant
-    // If a move is made to untrap a piece, not brilliant
-    const prevTrappedPieces = prevHanging.filter(piece => (
-        isPieceTrapped(prev.position, piece.square)
-    ));
-
-    const trappedPieces = hanging.filter(piece => isPieceTrapped(
-        current.position, piece.square, { move: current.move }
-    ));
-
-    if (
-        trappedPieces.length == hanging.length
-        || trappedPieces.length < prevTrappedPieces.length
-    ) return log(
-        "all hanging pieces are trapped, or there are less"
-        + " trapped pieces than in the last position."
+        "taking any of your hanging pieces sacrifices more material"
+        + " for your opponent, or allows you mate in 1"
     );
 
     // If the moved piece was trapped (desperado), not brilliant
-    const movedPieceTrapped = prevTrappedPieces.some(
-        piece => piece.square == current.move.from
-    );
+    if (isPieceTrapped(prev.position, current.move.from))
+        return log("moved piece was trapped in the last position.");
 
-    if (movedPieceTrapped)
-        return log("piece trapped in the last position.");
+    // If all the mover's hanging pieces are trapped anyway, not brilliant
+    // If a move is made to untrap a piece, not brilliant
+    const allHangingTrapped = hanging.every(piece => isPieceTrapped(
+        current.position,
+        piece.square,
+        { diffAttacks: false, move: current.move }
+    ));
+
+    if (allHangingTrapped) return log(
+        "all hanging pieces are trapped, or there are less"
+        + " trapped pieces than in the last position."
+    );
 
     log(`identified ${hanging.length} hanging piece(s):`);
     log(hanging.map(piece => makeSquare(piece.square)).join(", "));

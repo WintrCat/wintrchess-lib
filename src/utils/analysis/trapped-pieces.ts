@@ -27,6 +27,14 @@ export interface TrappedPieceOptions extends ExchangeOptions {
      * whose attacks are revealed after an escape square is attempted.
      */
     minimumMaterialLoss?: number;
+    /**
+     * Whether or not attacks that exist after the piece attempts to
+     * escape to a square must be a direct cause of that move. If this
+     * is `false`, then a piece may be considered trapped if all of its
+     * moves simply fail to address a greater or equal threat somewhere
+     * else on the board. Defaults to `true`.
+     */
+    diffAttacks?: boolean;
 }
 
 /**
@@ -39,7 +47,7 @@ export interface TrappedPieceOptions extends ExchangeOptions {
 export function isPieceTrapped(
     position: Chess,
     square: Square,
-    opts?: TrappedPieceOptions
+    opts: TrappedPieceOptions = {}
 ) {
     const piece = position.board.get(square);
     if (!piece) return false;
@@ -48,15 +56,16 @@ export function isPieceTrapped(
     position.turn = piece.color;
 
     // defaults for options
-    const transitiveAttackCheck = opts?.transitiveAttackCheck ?? true;
-    const mateCheck = opts?.mateCheck ?? true;
-    const minimumMaterialLoss = opts?.minimumMaterialLoss || 2;
+    opts.transitiveAttackCheck ??= true;
+    opts.mateCheck ??= true;
+    opts.minimumMaterialLoss ??= 2;
+    opts.diffAttacks ??= true;
 
     const currentHanging = squareSetOf(
         getHangingPieces(position, {
             ...opts,
             includedPieces: position.board[piece.color],
-            minimumMaterialLoss: minimumMaterialLoss
+            minimumMaterialLoss: opts.minimumMaterialLoss
         }).toArray()
     );
     if (!currentHanging.has(square)) return false;
@@ -65,7 +74,7 @@ export function isPieceTrapped(
         const escapePosition = withMove(position, move);
 
         // do mate check if configured
-        const allowsMate = mateCheck && getLegalMoves(position).some(
+        const allowsMate = opts.mateCheck && getLegalMoves(position).some(
             response => withMove(escapePosition, response).isCheckmate()
         );
         if (allowsMate) return true;
@@ -74,13 +83,15 @@ export function isPieceTrapped(
         const afterHanging = getHangingPieces(escapePosition, {
             ...opts,
             includedPieces: escapePosition.board[piece.color],
-            minimumMaterialLoss: minimumMaterialLoss,
+            minimumMaterialLoss: opts.minimumMaterialLoss,
             move: move
         });
 
-        return afterHanging.some(piece => transitiveAttackCheck
-            ? !currentHanging.has(piece.square)
-            : piece.square == move.to
-        );
+        return opts.diffAttacks
+            ? afterHanging.some(piece => opts.transitiveAttackCheck
+                ? !currentHanging.has(piece.square)
+                : piece.square == move.to
+            )
+            : afterHanging.take(1).toArray().length > 0;
     });
 }

@@ -17,10 +17,11 @@ export function isMoveImportant(
     // Moves required to escape check cannot be important
     // Opponent can give a check first, then take a promoted piece on the
     // next turn, which would at that point be considered a sacrifice.
-    // The move to escape check could otherwise falsely be brilliant.
+    // The move to escape check could otherwise falsely be brilliant
     if (prev.position.isCheck()) return false;
 
-    // Queen promotions are generally too easy to find
+    // It is not possible to sacrifice more material than you would
+    // gain anyway from a queen promotion
     if (current.move.promotion == "queen") return false;
 
     // If it's still super winning after the played move
