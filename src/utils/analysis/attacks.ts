@@ -15,26 +15,6 @@ import {
 import { AttackMovesOptions } from "../types/exchanges";
 import { unfoldMove } from "./legal-moves";
 
-/** Returns moves that would capture this piece. */
-export function getAttackerMoves(
-    position: Chess,
-    square: Square,
-    opts?: AttackMovesOptions
-) {
-    const piece = position.board.get(square);
-    if (!piece) throw new Error("no piece found.");
-
-    const enemies = position.board[opposite(piece.color)];
-
-    return [...enemies].map(enemySquare => {
-        const enemy = position.board.get(enemySquare);
-        if (!enemy) return [];
-
-        return getAttackMoves(position, enemySquare, opts)
-            .filter(atk => atk.captured?.square == square);
-    }).flat();
-}
-
 /**
  * Returns capturing moves that a piece can make. In check positions
  * whose turn has been flipped, king captures will be included.
@@ -70,6 +50,26 @@ export function getAttackMoves(
     }).flat() as ContextualCapture[];
 }
 
+/** Returns moves that would capture this piece. */
+export function getAttackerMoves(
+    position: Chess,
+    square: Square,
+    opts?: AttackMovesOptions
+) {
+    const piece = position.board.get(square);
+    if (!piece) throw new Error("no piece found.");
+
+    const enemies = position.board[opposite(piece.color)];
+
+    return [...enemies].map(enemySquare => {
+        const enemy = position.board.get(enemySquare);
+        if (!enemy) return [];
+
+        return getAttackMoves(position, enemySquare, opts)
+            .filter(atk => atk.captured?.square == square);
+    }).flat();
+}
+
 /**
  * Returns the attackers of a piece on `square`.
  * @param opts.enforceLegal Whether to enforce legal moves e.g.
@@ -92,10 +92,10 @@ export function getAttackers(
 
     position.turn = opposite(piece.color);
 
-    const attackers: LocatedPiece[] = getAttackerMoves(position, square, {
-        enforceLegal: opts?.enforceLegal,
-        unfold: false
-    }).map(move => ({ ...move.piece, square: move.from }));
+    const attackers: LocatedPiece[] = getAttackerMoves(
+        position, square,
+        { enforceLegal: opts?.enforceLegal, unfold: false }
+    ).map(move => ({ ...move.piece, square: move.from }));
 
     if (opts?.xray && attackers.length > 0) {
         for (const attacker of attackers) {
