@@ -50,7 +50,7 @@ export function classify(opts: ClassifyOptions): Classification {
 
     if (
         !opts?.exclude?.has("forced")
-        && hasLegalMoveCount(ctx.position, 1)
+        && hasLegalMoveCount(prevCtx.position, 1)
     ) return "forced";
 
     if (
