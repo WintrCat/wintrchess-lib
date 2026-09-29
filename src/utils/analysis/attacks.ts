@@ -113,7 +113,7 @@ export function getAttackers(
         && kingAttacks(allyKing).has(square);
 
     if (needsKingDefender) attackers.push({
-        color: piece.color,
+        color: position.turn,
         role: "king",
         square: allyKing
     });
