@@ -97,13 +97,18 @@ export function getAttackers(
         { enforceLegal: opts?.enforceLegal, unfold: false }
     ).map(move => ({ ...move.piece, square: move.from }));
 
-    if (opts?.xray && attackers.length > 0) {
-        for (const attacker of attackers) {
-            if (attacker.role == "king") continue;
+    if (opts?.xray) {
+        const removable = attackers.filter(atk => atk.role != "king");
+
+        for (const attacker of removable) {
             position.board.take(attacker.square);
         }
 
-        attackers.push(...getAttackers(position, square, opts));
+        if (removable.length > 0) attackers.push(
+            ...getAttackers(position, square, opts).filter(xray => (
+                !attackers.some(atk => atk.square == xray.square)
+            ))
+        );
     }
     
     // Add King defender if it was not added due to illegal capture

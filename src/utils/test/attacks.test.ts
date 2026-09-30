@@ -97,3 +97,36 @@ test((
         { enforceLegal: false }
     )).toHaveLength(1);
 });
+
+test((
+    "k7/8/8/4p3/4K3/8/8/8 w - - 0 1 > "
+    + "king as only attacker of e5 (w/ xray)"
+), ({ task }) => {
+    const position = chessFromFen(task.name.split(" > ")[0]!);
+
+    expect(
+        getAttackers(position, parseSquare("e5"), { xray: true })
+    ).toHaveLength(1);
+});
+
+test((
+    "k7/8/8/8/4P3/4K3/8/8 b - - 0 1 > "
+    + "king as only defender of e4 (w/ xray)"
+), ({ task }) => {
+    const position = chessFromFen(task.name.split(" > ")[0]!);
+
+    expect(
+        getDefenders(position, parseSquare("e4"), { xray: true })
+    ).toHaveLength(1);
+});
+
+test((
+    "7k/8/8/8/8/8/r2Rn3/5K2 w - - 0 1 > "
+    + "king attacker is not duplicated when x-ray makes capture illegal"
+), ({ task }) => {
+    const position = chessFromFen(task.name.split(" > ")[0]!);
+
+    expect(
+        getAttackers(position, parseSquare("e2"), { xray: true })
+    ).toHaveLength(2);
+});
