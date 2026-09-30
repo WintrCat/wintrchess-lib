@@ -14,6 +14,7 @@ import {
 } from "@/types";
 import { AttackMovesOptions } from "../types/exchanges";
 import { unfoldMove } from "./legal-moves";
+import { isPromotion } from "../pawns";
 
 /**
  * Returns capturing moves that a piece can make. In check positions
@@ -44,9 +45,13 @@ export function getAttackMoves(
     return [...victims].map(victim => {
         const move: NormalMove = { from: square, to: victim };
 
-        return (opts?.unfold ?? true)
-            ? unfoldMove(position, move)
-            : contextualizeMove(position, move);
+        if (opts?.unfold ?? true) return unfoldMove(position, move);
+
+        const ctxMove = contextualizeMove(position, move, false);
+
+        return isPromotion(position, move)
+            ? { ...ctxMove, promotion: "queen" as const }
+            : ctxMove;
     }).flat() as ContextualCapture[];
 }
 
