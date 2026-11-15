@@ -74,7 +74,7 @@ export function isPieceTrapped(
         const escapePosition = withMove(position, move);
 
         // do mate check if configured
-        const allowsMate = opts.mateCheck && getLegalMoves(position).some(
+        const allowsMate = opts.mateCheck && getLegalMoves(escapePosition).some(
             response => withMove(escapePosition, response).isCheckmate()
         );
         if (allowsMate) return true;

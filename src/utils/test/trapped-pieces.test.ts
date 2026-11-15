@@ -69,6 +69,18 @@ const samples: Sample[] = [
         square: "e3",
         expected: false,
         minimumMaterialLoss: 4
+    },
+    {
+        fen: "7k/2p3pp/8/4n3/5P2/2Q5/1B6/7K b - - 0 1",
+        square: "e5",
+        expected: true,
+        mateCheck: true
+    },
+    {
+        fen: "7k/2p3pp/8/4n3/5P2/2Q5/1B6/7K b - - 0 1",
+        square: "e5",
+        expected: false,
+        mateCheck: false
     }
 ];
 
