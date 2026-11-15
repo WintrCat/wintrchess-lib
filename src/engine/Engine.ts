@@ -1,8 +1,8 @@
 import { Chess, NormalMove, parseUci, makeUci } from "chessops";
-import { makeFen, parseFen } from "chessops/fen";
+import { makeFen } from "chessops/fen";
 
 import { contextualizeMove } from "@/types";
-import { withMove } from "@/utils";
+import { chessFromFen, withMove } from "@/utils";
 import { EngineLine } from "./types/EngineLine";
 import { DEFAULT_DEPTH, EvaluateOptions } from "./types/EvaluateOptions";
 import { UCICommand, UCIOption, UCIValue } from "./types/uci";
@@ -158,8 +158,9 @@ export abstract class Engine {
         moves?: (string | NormalMove)[] 
     ) {
         position = typeof position == "string"
-            ? Chess.fromSetup(parseFen(position).unwrap()).unwrap()
-            : position.clone();
+            ? chessFromFen(position) : position.clone();
+
+        const initialPosition = position.clone();
 
         const uciMoves = moves?.map(move => {
             const parsedMove = typeof move == "string"
@@ -174,7 +175,7 @@ export abstract class Engine {
         this.position = position;
         
         const args = makeUCIArguments({
-            fen: makeFen(position.toSetup()),
+            fen: makeFen(initialPosition.toSetup()),
             moves: uciMoves?.join(" ")
         });
 
