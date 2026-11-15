@@ -20,8 +20,8 @@ function mateToMateClassify(
     prevCtx: PreviousClassifyContext,
     ctx: ClassifyContext
 ): Classification | undefined {
-    const prevEval = prevCtx.top.evaluation;
-    const currEval = ctx.top.evaluation;
+    const prevEval = prevCtx.top.sidedEvaluation;
+    const currEval = ctx.top.sidedEvaluation;
 
     if (
         prevEval.type != "mate"
@@ -29,8 +29,14 @@ function mateToMateClassify(
         || Math.sign(prevEval.value) != Math.sign(currEval.value)
     ) return;
 
-    return Math.abs(currEval.value) >= Math.abs(prevEval.value)
-        ? "excellent" : "best";
+    const prevDistance = Math.abs(prevEval.value);
+    const currDistance = Math.abs(currEval.value);
+
+    const isBest = prevEval.value > 0
+        ? currDistance < prevDistance
+        : currDistance >= prevDistance;
+
+    return isBest ? "best" : "excellent";
 }
 
 /** Returns a classification for a given move. */
