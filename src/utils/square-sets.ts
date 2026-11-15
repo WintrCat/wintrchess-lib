@@ -99,8 +99,8 @@ export function flank(colour?: Color) {
  */
 export function center(colour?: Color) {
     return colouredSet(
-        SquareSet.center().intersect(SquareSet.fromRank(4)),
         SquareSet.center().intersect(SquareSet.fromRank(3)),
+        SquareSet.center().intersect(SquareSet.fromRank(4)),
         colour
     );
 }
